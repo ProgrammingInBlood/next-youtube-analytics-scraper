@@ -1,0 +1,92 @@
+@import "tailwindcss";
+
+:root {
+  --background: #0e0e10;
+  --foreground: #efeff1;
+  --primary: #9147ff;
+  --primary-hover: #772ce8;
+  --secondary: #6441a5;
+  --accent: #00b5ad;
+  --card-bg: #18181b;
+  --card-border: #323235;
+  --sidebar-bg: #1f1f23;
+  --input-bg: #2c2c35;
+  --input-border: #3a3a45;
+  --tooltip-bg: #18181b;
+  --success: #52b788;
+  --warning: #f0b232;
+  --error: #e91916;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: #0a0a0a;
+    --foreground: #ededed;
+  }
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+/* Custom scrollbar styling */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #18181b;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #3a3a45;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #6441a5;
+}
+
+/* Button Styling */
+.btn-primary {
+  background: var(--primary);
+  color: white;
+  transition: background-color 0.2s;
+}
+
+.btn-primary:hover {
+  background: var(--primary-hover);
+}
+
+/* Card Styling */
+.card {
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: 0.5rem;
+}
+
+/* Input Styling */
+.input {
+  background: var(--input-bg);
+  border: 1px solid var(--input-border);
+  color: var(--foreground);
+  padding: 0.5rem 1rem;
+  border-radius: 0.5rem;
+}
+
+.input:focus {
+  border-color: var(--primary);
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(145, 71, 255, 0.25);
+}
