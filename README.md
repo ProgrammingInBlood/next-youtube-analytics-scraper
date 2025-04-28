@@ -14,7 +14,7 @@ A production-grade web application that lets you enter up to **3 YouTube Live Vi
 |--------------|-------------------|
 | Frontend     | Next.js (App Router + TypeScript) |
 | Backend      | Bun + ElysiaJS    |
-| Scraping     | Puppeteer         |
+| Scraping     | Puppeteer Core    |
 | Communication| REST API (future: WebSockets) |
 | Deployment   | Vercel (Frontend), Railway/Bun (Backend) |
 
@@ -30,6 +30,7 @@ A production-grade web application that lets you enter up to **3 YouTube Live Vi
 - ✅ Uses Puppeteer to mimic real browser behavior and extract required tokens.
 - ✅ ElysiaJS backend with Bun for speed and modern API structure.
 - ✅ Minimal, modern UI with React/Next.js.
+- ✅ Compatible with Android Termux using puppeteer-core.
 
 ---
 
@@ -92,7 +93,54 @@ npm run dev
 
 ### 4. Open the application
 
-Visit `http://192.168.0.191:3000` in your browser.
+Visit `http://192.168.0.243:3000` in your browser.
+
+---
+
+## 📱 Running on Android with Termux
+
+The application can be run on Android devices using Termux. We've implemented puppeteer-core support to connect to an existing Chromium installation rather than bundling a browser.
+
+### Termux Setup
+
+1. Install Termux from F-Droid (not Google Play Store version)
+2. Open Termux and run the setup script:
+
+```bash
+cd backend
+chmod +x termux-setup.sh
+./termux-setup.sh
+```
+
+3. Once setup is complete, you need to run three separate Termux sessions:
+
+**Session 1: Start Chromium**
+```bash
+proot-distro login alpine -- chromium-browser --headless --disable-gpu --remote-debugging-port=9222
+```
+
+**Session 2: Start Backend**
+```bash
+cd backend
+bun run start
+```
+
+**Session 3: Start Frontend**
+```bash
+npm run dev
+```
+
+4. Access the application at `http://192.168.0.243:3000` in your Android browser
+
+### How It Works on Termux
+
+Instead of bundling Chromium (which is problematic on Android), we:
+1. Use proot-distro to create an Alpine Linux container
+2. Install Chromium in the container
+3. Connect to the Chromium instance via remote debugging with puppeteer-core
+4. Allow the application to run on resource-constrained Android devices
+
+This implementation is based on the techniques from [puppeteer-on-termux](https://github.com/rishabhrpg/puppeteer-on-termux).
 
 ---
 

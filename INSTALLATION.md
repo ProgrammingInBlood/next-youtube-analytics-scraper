@@ -38,8 +38,8 @@ After installing the prerequisites:
    ```
 
 4. Open your browser and go to:
-   - Frontend: http://192.168.0.191:3000
-   - Backend API: http://192.168.0.191:3001
+   - Frontend: http://192.168.0.243:3000
+   - Backend API: http://192.168.0.243:3001
 
 ## Troubleshooting
 

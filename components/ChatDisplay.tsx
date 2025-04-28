@@ -553,8 +553,8 @@ export default function ChatDisplay({ messages, videoMetadata = [] }: ChatDispla
   const renderSourceStats = useCallback(() => {
     // Get unique source IDs from messages
     const sourceIds = [...new Set(messages.map(m => m.sourceVideo.id))];
-    
-    return (
+
+  return (
       <div className="mb-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
         {sourceIds.map(sourceId => {
           const metadata = videoMetadata.find(m => m.videoId === sourceId);

@@ -142,7 +142,7 @@ export default function YouTubeAggregator() {
         .slice(-300) // Only use the last 300 messages for deduplication
         .map(msg => msg.id);
       
-      const response = await fetch('http://192.168.0.191:3001/api/live-chat', {
+      const response = await fetch('http://192.168.0.243:3001/api/live-chat', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -223,7 +223,7 @@ export default function YouTubeAggregator() {
         return;
       }
       
-      const response = await fetch('http://192.168.0.191:3001/api/video-metadata', {
+      const response = await fetch('http://192.168.0.243:3001/api/video-metadata', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
