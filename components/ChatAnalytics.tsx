@@ -369,15 +369,19 @@ export default function ChatAnalytics({ messages, metadata }: ChatAnalyticsProps
       };
 
       return (
-        <div className="bg-white dark:bg-gray-800 p-3 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg">
-          <p className="font-medium text-gray-800 dark:text-gray-200">{label}</p>
+        <div className="container-box" style={{ padding: '12px', maxWidth: '300px' }}>
+          <p className="text-sm text-primary" style={{ fontWeight: '600', marginBottom: '8px' }}>{label}</p>
           {payload.map((entry: any, index: number) => (
-            <p key={index} style={{ color: entry.color }} className="text-sm">
+            <p key={index} style={{ color: entry.color, marginBottom: '4px' }} className="text-sm">
               {entry.name}: {entry.value.toLocaleString()}
             </p>
           ))}
           {payload[0]?.payload?.fullTitle && (
-            <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 border-t border-gray-200 dark:border-gray-700 pt-1">
+            <p className="text-xs text-muted" style={{ 
+              marginTop: '8px', 
+              paddingTop: '8px',
+              borderTop: '1px solid var(--border)'
+            }}>
               {formatTitle(payload[0].payload.fullTitle)}
             </p>
           )}
@@ -388,48 +392,32 @@ export default function ChatAnalytics({ messages, metadata }: ChatAnalyticsProps
   };
 
   return (
-    <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <h2 className="text-xl font-semibold text-gray-900 dark:text-white">Chat Analytics</h2>
+    <div className="container-section">
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
+        <h2 className="text-lg text-primary">Chat Analytics</h2>
         
-        <div className="flex space-x-2">
+        <div style={{ display: 'flex', gap: '8px' }}>
           <button 
             onClick={() => setTimeRange('5min')}
-            className={`px-3 py-1 text-sm rounded-md ${
-              timeRange === '5min' 
-                ? 'bg-blue-500 text-white' 
-                : 'bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200'
-            }`}
+            className={`btn ${timeRange === '5min' ? 'btn-primary' : 'btn-secondary'}`}
           >
             5m
           </button>
           <button 
             onClick={() => setTimeRange('15min')}
-            className={`px-3 py-1 text-sm rounded-md ${
-              timeRange === '15min' 
-                ? 'bg-blue-500 text-white' 
-                : 'bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200'
-            }`}
+            className={`btn ${timeRange === '15min' ? 'btn-primary' : 'btn-secondary'}`}
           >
             15m
           </button>
           <button 
             onClick={() => setTimeRange('30min')}
-            className={`px-3 py-1 text-sm rounded-md ${
-              timeRange === '30min' 
-                ? 'bg-blue-500 text-white' 
-                : 'bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200'
-            }`}
+            className={`btn ${timeRange === '30min' ? 'btn-primary' : 'btn-secondary'}`}
           >
             30m
           </button>
           <button 
             onClick={() => setTimeRange('all')}
-            className={`px-3 py-1 text-sm rounded-md ${
-              timeRange === 'all' 
-                ? 'bg-blue-500 text-white' 
-                : 'bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200'
-            }`}
+            className={`btn ${timeRange === 'all' ? 'btn-primary' : 'btn-secondary'}`}
           >
             All
           </button>
@@ -437,284 +425,380 @@ export default function ChatAnalytics({ messages, metadata }: ChatAnalyticsProps
       </div>
       
       {/* Message Activity Chart */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div className="col-span-2 bg-white dark:bg-gray-800 p-4 rounded-lg border border-gray-200 dark:border-gray-700 shadow-sm">
-          <h3 className="text-lg font-medium mb-3 text-gray-900 dark:text-white flex items-center justify-between">
-            <span>Message Activity</span>
-            {filteredMessages.length > 0 && (
-              <span className="text-sm font-normal text-gray-500 dark:text-gray-400">
-                {filteredMessages.length} messages
-              </span>
-            )}
-          </h3>
-          
-          <div className="h-64">
-            {activityChartData.length > 0 ? (
-              <ResponsiveContainer width="100%" height="100%">
-                <AreaChart
-                  data={activityChartData}
-                  margin={{ top: 5, right: 20, left: 0, bottom: 25 }}
-                >
-                  <CartesianGrid strokeDasharray="3 3" stroke="#374151" opacity={0.2} />
-                  <XAxis 
-                    dataKey="time" 
-                    tick={{ fill: '#6B7280' }} 
-                    angle={-45}
-                    textAnchor="end"
-                    tickMargin={10}
-                  />
-                  <YAxis tick={{ fill: '#6B7280' }} />
-                  <Tooltip content={<CustomTooltip />} />
-                  <Area 
-                    type="monotone" 
-                    dataKey="messages" 
-                    name="Messages" 
-                    stroke={COLORS.messages} 
-                    fill={COLORS.messages} 
-                    fillOpacity={0.3} 
-                    activeDot={{ r: 6 }} 
-                  />
-                  <Area 
-                    type="monotone" 
-                    dataKey="users" 
-                    name="Unique Users" 
-                    stroke={COLORS.users} 
-                    fill={COLORS.users} 
-                    fillOpacity={0.2} 
-                    activeDot={{ r: 4 }} 
-                  />
-                </AreaChart>
-              </ResponsiveContainer>
-            ) : (
-              <div className="h-full flex flex-col items-center justify-center gap-3 text-gray-500 dark:text-gray-400">
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-12 w-12 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-                </svg>
-                <div className="text-center">
-                  <p className="text-base font-medium">No data available</p>
-                  <p className="text-sm mt-1">Waiting for chat messages</p>
+      <div className="grid grid-cols-3" style={{ gap: '24px', marginBottom: '24px' }}>
+        <div style={{ gridColumn: 'span 2' }} className="container-box">
+          <div className="container-section">
+            <h3 className="text-base text-secondary" style={{ 
+              display: 'flex', 
+              alignItems: 'center', 
+              justifyContent: 'space-between',
+              marginBottom: '16px'
+            }}>
+              <span>Message Activity</span>
+              {filteredMessages.length > 0 && (
+                <span className="text-xs text-muted">
+                  {filteredMessages.length} messages
+                </span>
+              )}
+            </h3>
+            
+            <div style={{ height: '256px' }}>
+              {activityChartData.length > 0 ? (
+                <ResponsiveContainer width="100%" height="100%">
+                  <AreaChart
+                    data={activityChartData}
+                    margin={{ top: 5, right: 20, left: 0, bottom: 25 }}
+                  >
+                    <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" opacity={0.5} />
+                    <XAxis 
+                      dataKey="time" 
+                      tick={{ fill: 'var(--text-muted)', fontSize: 12 }} 
+                      angle={-45}
+                      textAnchor="end"
+                      tickMargin={10}
+                    />
+                    <YAxis tick={{ fill: 'var(--text-muted)', fontSize: 12 }} />
+                    <Tooltip content={<CustomTooltip />} />
+                    <Area 
+                      type="monotone" 
+                      dataKey="messages" 
+                      name="Messages" 
+                      stroke={COLORS.messages} 
+                      fill={COLORS.messages} 
+                      fillOpacity={0.3} 
+                      activeDot={{ r: 6 }} 
+                    />
+                    <Area 
+                      type="monotone" 
+                      dataKey="users" 
+                      name="Unique Users" 
+                      stroke={COLORS.users} 
+                      fill={COLORS.users} 
+                      fillOpacity={0.2} 
+                      activeDot={{ r: 4 }} 
+                    />
+                  </AreaChart>
+                </ResponsiveContainer>
+              ) : (
+                <div style={{ 
+                  height: '100%', 
+                  display: 'flex', 
+                  flexDirection: 'column', 
+                  alignItems: 'center', 
+                  justifyContent: 'center', 
+                  gap: '12px'
+                }}>
+                  <svg width="48" height="48" viewBox="0 0 24 24" fill="currentColor" className="text-muted">
+                    <path d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" stroke="currentColor" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
+                  <div style={{ textAlign: 'center' }}>
+                    <p className="text-sm text-secondary" style={{ fontWeight: '500' }}>No data available</p>
+                    <p className="text-xs text-muted" style={{ marginTop: '4px' }}>Waiting for chat messages</p>
+                  </div>
                 </div>
-              </div>
-            )}
+              )}
+            </div>
           </div>
         </div>
         
         {/* Engagement Score Card */}
-        <div className="bg-white dark:bg-gray-800 p-4 rounded-lg border border-gray-200 dark:border-gray-700 shadow-sm">
-          <h3 className="text-lg font-medium mb-4 text-gray-900 dark:text-white">Engagement Score</h3>
-          
-          <div className="flex flex-col items-center justify-center h-64">
-            <div className="text-5xl font-bold text-blue-500 mb-2">{engagementScore}</div>
-            <div className="text-sm text-gray-500 dark:text-gray-400 text-center">
-              Based on {filteredMessages.length} messages from {new Set(filteredMessages.map(msg => msg.authorChannelId)).size} unique users
+        <div className="container-box">
+          <div className="container-section">
+            <h3 className="text-base text-secondary" style={{ marginBottom: '16px' }}>Engagement Score</h3>
+            
+            <div style={{ 
+              display: 'flex', 
+              flexDirection: 'column', 
+              alignItems: 'center', 
+              justifyContent: 'center', 
+              height: '256px'
+            }}>
+              <div className="text-primary" style={{ 
+                fontSize: '48px', 
+                fontWeight: '700', 
+                marginBottom: '8px',
+                color: 'var(--primary)'
+              }}>
+                {engagementScore}
+              </div>
+              <div className="text-xs text-muted" style={{ textAlign: 'center' }}>
+                Based on {filteredMessages.length} messages from {new Set(filteredMessages.map(msg => msg.authorChannelId)).size} unique users
+              </div>
             </div>
           </div>
         </div>
       </div>
       
       {/* Multi-metric Engagement Chart */}
-      <div className="bg-white dark:bg-gray-800 p-4 rounded-lg border border-gray-200 dark:border-gray-700 shadow-sm">
-        <h3 className="text-lg font-medium mb-4 text-gray-900 dark:text-white">Video Engagement Metrics</h3>
-        
-        <div className="h-80">
-          {engagementChartData.length > 0 ? (
-            <ResponsiveContainer width="100%" height="100%">
-              <ComposedChart
-                data={engagementChartData}
-                margin={{ top: 5, right: 30, left: 20, bottom: 60 }}
-              >
-                <CartesianGrid strokeDasharray="3 3" stroke="#374151" opacity={0.2} />
-                <XAxis 
-                  dataKey="name" 
-                  tick={{ fill: '#6B7280' }}
-                  angle={-45}
-                  textAnchor="end"
-                  height={80}
-                  interval={0}
-                />
-                <YAxis 
-                  yAxisId="left" 
-                  tick={{ fill: '#6B7280' }}
-                  tickFormatter={(value) => value >= 1000 ? `${(value/1000).toFixed(1)}k` : value}
-                />
-                <YAxis 
-                  yAxisId="right" 
-                  orientation="right" 
-                  tick={{ fill: '#6B7280' }}
-                  tickFormatter={(value) => value >= 1000 ? `${(value/1000).toFixed(1)}k` : value}
-                />
-                <Tooltip content={<CustomTooltip />} />
-                <Legend verticalAlign="top" height={36} />
-                <Bar 
-                  yAxisId="left" 
-                  dataKey="comments" 
-                  name="Comments" 
-                  fill={COLORS.comments}
-                  barSize={20}
-                  radius={[4, 4, 0, 0]}
-                />
-                <Bar 
-                  yAxisId="left" 
-                  dataKey="likes" 
-                  name="Likes" 
-                  fill={COLORS.likes}
-                  barSize={20}
-                  radius={[4, 4, 0, 0]}
-                />
-                <Line 
-                  yAxisId="right" 
-                  type="monotone" 
-                  dataKey="views" 
-                  name="Views" 
-                  stroke={COLORS.views} 
-                  strokeWidth={2}
-                  dot={{ r: 4 }}
-                  activeDot={{ r: 6 }}
-                />
-              </ComposedChart>
-            </ResponsiveContainer>
-          ) : (
-            <div className="h-full flex items-center justify-center text-gray-500 dark:text-gray-400">
-              No data available for video metrics
-            </div>
-          )}
+      <div className="container-box" style={{ marginBottom: '24px' }}>
+        <div className="container-section">
+          <h3 className="text-base text-secondary" style={{ marginBottom: '16px' }}>Video Engagement Metrics</h3>
+          
+          <div style={{ height: '320px' }}>
+            {engagementChartData.length > 0 ? (
+              <ResponsiveContainer width="100%" height="100%">
+                <ComposedChart
+                  data={engagementChartData}
+                  margin={{ top: 5, right: 30, left: 20, bottom: 60 }}
+                >
+                  <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" opacity={0.5} />
+                  <XAxis 
+                    dataKey="name" 
+                    tick={{ fill: 'var(--text-muted)', fontSize: 12 }}
+                    angle={-45}
+                    textAnchor="end"
+                    height={80}
+                    interval={0}
+                  />
+                  <YAxis 
+                    yAxisId="left" 
+                    tick={{ fill: 'var(--text-muted)', fontSize: 12 }}
+                    tickFormatter={(value) => value >= 1000 ? `${(value/1000).toFixed(1)}k` : value}
+                  />
+                  <YAxis 
+                    yAxisId="right" 
+                    orientation="right" 
+                    tick={{ fill: 'var(--text-muted)', fontSize: 12 }}
+                    tickFormatter={(value) => value >= 1000 ? `${(value/1000).toFixed(1)}k` : value}
+                  />
+                  <Tooltip content={<CustomTooltip />} />
+                  <Legend verticalAlign="top" height={36} />
+                  <Bar 
+                    yAxisId="left" 
+                    dataKey="comments" 
+                    name="Comments" 
+                    fill={COLORS.comments}
+                    barSize={20}
+                    radius={[0, 0, 0, 0]}
+                  />
+                  <Bar 
+                    yAxisId="left" 
+                    dataKey="likes" 
+                    name="Likes" 
+                    fill={COLORS.likes}
+                    barSize={20}
+                    radius={[0, 0, 0, 0]}
+                  />
+                  <Line 
+                    yAxisId="right" 
+                    type="monotone" 
+                    dataKey="views" 
+                    name="Views" 
+                    stroke={COLORS.views} 
+                    strokeWidth={2}
+                    dot={{ r: 4 }}
+                    activeDot={{ r: 6 }}
+                  />
+                </ComposedChart>
+              </ResponsiveContainer>
+            ) : (
+              <div style={{ 
+                height: '100%', 
+                display: 'flex', 
+                alignItems: 'center', 
+                justifyContent: 'center' 
+              }}>
+                <div style={{ textAlign: 'center' }}>
+                  <p className="text-sm text-muted">No data available for video metrics</p>
+                </div>
+              </div>
+            )}
+          </div>
         </div>
       </div>
       
       {/* Metrics Over Time Chart */}
-      <div className="bg-white dark:bg-gray-800 p-4 rounded-lg border border-gray-200 dark:border-gray-700 shadow-sm">
-        <h3 className="text-lg font-medium mb-4 text-gray-900 dark:text-white">Metrics Comparison</h3>
-        
-        <div className="h-80">
-          {engagementChartData.length > 0 ? (
-            <ResponsiveContainer width="100%" height="100%">
-              <RadarChart cx="50%" cy="50%" outerRadius="80%" data={engagementChartData}>
-                <PolarGrid />
-                <PolarAngleAxis dataKey="name" />
-                <PolarRadiusAxis angle={30} domain={[0, 'auto']} />
-                <Radar name="Comments" dataKey="comments" stroke={COLORS.comments} fill={COLORS.comments} fillOpacity={0.6} />
-                <Radar name="Likes" dataKey="likes" stroke={COLORS.likes} fill={COLORS.likes} fillOpacity={0.6} />
-                <Legend />
-                <Tooltip content={<CustomTooltip />} />
-              </RadarChart>
-            </ResponsiveContainer>
-          ) : (
-            <div className="h-full flex items-center justify-center text-gray-500 dark:text-gray-400">
-              No data available for metrics comparison
-            </div>
-          )}
+      <div className="container-box" style={{ marginBottom: '24px' }}>
+        <div className="container-section">
+          <h3 className="text-base text-secondary" style={{ marginBottom: '16px' }}>Metrics Comparison</h3>
+          
+          <div style={{ height: '320px' }}>
+            {engagementChartData.length > 0 ? (
+              <ResponsiveContainer width="100%" height="100%">
+                <RadarChart cx="50%" cy="50%" outerRadius="80%" data={engagementChartData}>
+                  <PolarGrid stroke="var(--border)" />
+                  <PolarAngleAxis dataKey="name" tick={{ fill: 'var(--text-muted)', fontSize: 12 }} />
+                  <PolarRadiusAxis angle={30} domain={[0, 'auto']} tick={{ fill: 'var(--text-muted)', fontSize: 10 }} />
+                  <Radar name="Comments" dataKey="comments" stroke={COLORS.comments} fill={COLORS.comments} fillOpacity={0.6} />
+                  <Radar name="Likes" dataKey="likes" stroke={COLORS.likes} fill={COLORS.likes} fillOpacity={0.6} />
+                  <Legend />
+                  <Tooltip content={<CustomTooltip />} />
+                </RadarChart>
+              </ResponsiveContainer>
+            ) : (
+              <div style={{ 
+                height: '100%', 
+                display: 'flex', 
+                alignItems: 'center', 
+                justifyContent: 'center'
+              }}>
+                <div style={{ textAlign: 'center' }}>
+                  <p className="text-sm text-muted">No data available for metrics comparison</p>
+                </div>
+              </div>
+            )}
+          </div>
         </div>
       </div>
       
       {/* Top Chatters and Common Words */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div className="grid grid-cols-2" style={{ gap: '24px' }}>
         {/* Top Chatters Section */}
-        <div className="bg-white dark:bg-gray-800 p-4 rounded-lg border border-gray-200 dark:border-gray-700 shadow-sm">
-          <h3 className="text-lg font-medium mb-4 text-gray-900 dark:text-white">Top Chatters</h3>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {/* Top chatters list */}
-            <div>
-              {topChatters.length > 0 ? (
-                <div className="space-y-3">
-                  {topChatters.slice(0, 5).map((chatter, index) => (
-                    <div key={index} className="flex items-center">
-                      <div className="w-8 h-8 rounded-full bg-blue-100 dark:bg-blue-900 flex items-center justify-center text-blue-600 dark:text-blue-300 font-medium mr-3">
-                        {index + 1}
-                      </div>
-                      <div className="flex-grow">
-                        <div className="font-medium text-gray-800 dark:text-gray-200 truncate">{chatter.name}</div>
-                        <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2 mt-1">
-                          <div 
-                            className="bg-blue-600 h-2 rounded-full" 
-                            style={{ width: `${(chatter.count / topChatters[0].count) * 100}%` }}
-                          ></div>
+        <div className="container-box">
+          <div className="container-section">
+            <h3 className="text-base text-secondary" style={{ marginBottom: '16px' }}>Top Chatters</h3>
+            
+            <div className="grid grid-cols-2" style={{ gap: '16px' }}>
+              {/* Top chatters list */}
+              <div>
+                {topChatters.length > 0 ? (
+                  <div className="space-y-4">
+                    {topChatters.slice(0, 5).map((chatter, index) => (
+                      <div key={index} style={{ display: 'flex', alignItems: 'center' }}>
+                        <div style={{
+                          width: '32px',
+                          height: '32px',
+                          background: 'rgba(59, 130, 246, 0.1)',
+                          border: '1px solid var(--primary)',
+                          color: 'var(--primary)',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          fontWeight: '600',
+                          marginRight: '12px'
+                        }}>
+                          {index + 1}
+                        </div>
+                        <div style={{ flexGrow: 1 }}>
+                          <div className="text-sm text-primary" style={{ 
+                            fontWeight: '600',
+                            overflow: 'hidden',
+                            textOverflow: 'ellipsis',
+                            whiteSpace: 'nowrap'
+                          }}>
+                            {chatter.name}
+                          </div>
+                          <div style={{
+                            width: '100%',
+                            height: '8px',
+                            background: 'var(--card-bg)',
+                            border: '1px solid var(--border)',
+                            marginTop: '4px'
+                          }}>
+                            <div 
+                              style={{ 
+                                background: 'var(--primary)', 
+                                height: '100%',
+                                width: `${(chatter.count / topChatters[0].count) * 100}%`
+                              }}
+                            />
+                          </div>
+                        </div>
+                        <div className="text-sm text-muted" style={{ 
+                          marginLeft: '12px',
+                          fontWeight: '600'
+                        }}>
+                          {chatter.count}
                         </div>
                       </div>
-                      <div className="ml-3 text-sm font-medium text-gray-500 dark:text-gray-400">
-                        {chatter.count}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <div className="h-48 flex items-center justify-center text-gray-500 dark:text-gray-400">
-                  No data available
-                </div>
-              )}
-            </div>
-            
-            {/* Pie chart for author distribution */}
-            <div className="h-48">
-              {authorDistributionData.length > 0 ? (
-                <ResponsiveContainer width="100%" height="100%">
-                  <PieChart>
-                    <Pie
-                      data={authorDistributionData}
-                      cx="50%"
-                      cy="50%"
-                      innerRadius={30}
-                      outerRadius={60}
-                      paddingAngle={2}
-                      dataKey="value"
-                      nameKey="name"
-                      label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
-                      labelLine={false}
-                    >
-                      {authorDistributionData.map((entry, index) => (
-                        <Cell 
-                          key={`cell-${index}`} 
-                          fill={index < 5 ? `hsl(${index * 50}, 70%, 50%)` : '#9CA3AF'} 
-                        />
-                      ))}
-                    </Pie>
-                    <Tooltip />
-                  </PieChart>
-                </ResponsiveContainer>
-              ) : (
-                <div className="h-full flex items-center justify-center text-gray-500 dark:text-gray-400">
-                  No data available
-                </div>
-              )}
+                    ))}
+                  </div>
+                ) : (
+                  <div style={{ 
+                    height: '192px', 
+                    display: 'flex', 
+                    alignItems: 'center', 
+                    justifyContent: 'center'
+                  }}>
+                    <p className="text-sm text-muted">No data available</p>
+                  </div>
+                )}
+              </div>
+              
+              {/* Pie chart for author distribution */}
+              <div style={{ height: '192px' }}>
+                {authorDistributionData.length > 0 ? (
+                  <ResponsiveContainer width="100%" height="100%">
+                    <PieChart>
+                      <Pie
+                        data={authorDistributionData}
+                        cx="50%"
+                        cy="50%"
+                        innerRadius={30}
+                        outerRadius={60}
+                        paddingAngle={2}
+                        dataKey="value"
+                        nameKey="name"
+                        label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
+                        labelLine={false}
+                      >
+                        {authorDistributionData.map((entry, index) => (
+                          <Cell 
+                            key={`cell-${index}`} 
+                            fill={index < 5 ? `hsl(${index * 50}, 70%, 50%)` : '#9CA3AF'} 
+                          />
+                        ))}
+                      </Pie>
+                      <Tooltip />
+                    </PieChart>
+                  </ResponsiveContainer>
+                ) : (
+                  <div style={{ 
+                    height: '100%', 
+                    display: 'flex', 
+                    alignItems: 'center', 
+                    justifyContent: 'center'
+                  }}>
+                    <p className="text-sm text-muted">No data available</p>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         </div>
         
         {/* Common Words Section */}
-        <div className="bg-white dark:bg-gray-800 p-4 rounded-lg border border-gray-200 dark:border-gray-700 shadow-sm">
-          <h3 className="text-lg font-medium mb-4 text-gray-900 dark:text-white">Common Words</h3>
-          
-          {commonWords.length > 0 ? (
-            <div className="h-48">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart
-                  data={commonWords.slice(0, 10)}
-                  layout="vertical"
-                  margin={{ top: 5, right: 30, left: 50, bottom: 5 }}
-                >
-                  <CartesianGrid strokeDasharray="3 3" stroke="#374151" opacity={0.2} />
-                  <XAxis type="number" tick={{ fill: '#6B7280' }} />
-                  <YAxis 
-                    dataKey="word" 
-                    type="category" 
-                    tick={{ fill: '#6B7280' }} 
-                    width={60}
-                  />
-                  <Tooltip content={<CustomTooltip />} />
-                  <Bar 
-                    dataKey="count" 
-                    name="Occurrences" 
-                    fill={COLORS.users}
-                    radius={[0, 4, 4, 0]}
-                  />
-                </BarChart>
-              </ResponsiveContainer>
-            </div>
-          ) : (
-            <div className="h-64 flex items-center justify-center text-gray-500 dark:text-gray-400">
-              No data available
-            </div>
-          )}
+        <div className="container-box">
+          <div className="container-section">
+            <h3 className="text-base text-secondary" style={{ marginBottom: '16px' }}>Common Words</h3>
+            
+            {commonWords.length > 0 ? (
+              <div style={{ height: '192px' }}>
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart
+                    data={commonWords.slice(0, 10)}
+                    layout="vertical"
+                    margin={{ top: 5, right: 30, left: 50, bottom: 5 }}
+                  >
+                    <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" opacity={0.5} />
+                    <XAxis type="number" tick={{ fill: 'var(--text-muted)', fontSize: 12 }} />
+                    <YAxis 
+                      dataKey="word" 
+                      type="category" 
+                      tick={{ fill: 'var(--text-muted)', fontSize: 12 }} 
+                      width={60}
+                    />
+                    <Tooltip content={<CustomTooltip />} />
+                    <Bar 
+                      dataKey="count" 
+                      name="Occurrences" 
+                      fill={COLORS.users}
+                      radius={[0, 0, 0, 0]}
+                    />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+            ) : (
+              <div style={{ 
+                height: '256px', 
+                display: 'flex', 
+                alignItems: 'center', 
+                justifyContent: 'center'
+              }}>
+                <p className="text-sm text-muted">No data available</p>
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </div>

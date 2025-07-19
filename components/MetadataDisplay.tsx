@@ -60,85 +60,150 @@ const MetadataDisplay: React.FC<MetadataDisplayProps> = ({ metadata }) => {
   };
 
   return (
-    <div className="space-y-4">
-      <div className="flex items-center mb-1">
-        <h3 className="text-lg font-semibold text-white">
-          <span className="inline-block mr-2 bg-purple-500 w-2 h-2 rounded-full"></span>
-          Live Streams ({metadata.length})
-        </h3>
-      </div>
-      
-      {metadata.length === 0 ? (
-        <div className="text-center py-8 text-gray-400">
-          <div className="mb-3">
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-12 w-12 mx-auto text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
-            </svg>
+    <div className="container-box">
+      <div className="container-section">
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>
+          <h3 className="text-lg text-primary">Live Streams</h3>
+          <div className="status-indicator status-live">
+            {metadata.length} {metadata.length === 1 ? 'stream' : 'streams'}
           </div>
-          <p className="text-lg mb-1">No streams to display</p>
-          <p>Add YouTube live URLs to see their metadata</p>
         </div>
-      ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {metadata.map((video) => (
-            <div 
-              key={video.videoId}
-              onClick={() => openVideoUrl(video.videoUrl)}
-              className="relative overflow-hidden rounded-lg bg-gray-900 border border-purple-500/20 hover:border-purple-500/40 shadow-md transition-all duration-300 cursor-pointer group"
-            >
-              {/* Thumbnail with overlay */}
-              <div className="relative aspect-video">
-                <img 
-                  src={getYouTubeThumbnail(video.videoId)} 
-                  alt={formatTitle(video.title)} 
-                  className="w-full object-cover"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-gray-900/90 to-transparent"></div>
-                
-                {/* Live indicator */}
-                {video.isLive && (
-                  <div className="absolute top-3 left-3 bg-red-600 text-white text-xs uppercase tracking-wide font-bold px-2 py-1 rounded flex items-center">
-                    <span className="animate-pulse mr-1.5 bg-white h-2 w-2 rounded-full inline-block"></span>
-                    Live
-                  </div>
-                )}
-                
-                {/* View count */}
-                <div className="absolute bottom-3 right-3 bg-black/60 text-white text-xs px-2 py-1 rounded flex items-center">
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                  </svg>
-                  {formatNumber(video.viewCount)}
-                </div>
-                
-                {/* Title overlay */}
-                <div className="absolute bottom-0 left-0 p-3">
-                  <h3 className="text-white font-semibold truncate mb-1 max-w-xs">
-                    {formatTitle(video.title)}
-                  </h3>
-                  <p className="text-gray-300 text-sm truncate">{video.channelName}</p>
-                </div>
-              </div>
-              
-              {/* Footer with stats */}
-              <div className="flex items-center justify-between px-3 py-2 bg-gray-800/80">
-                <div className="flex items-center">
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1.5 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
-                  </svg>
-                  <span className="text-purple-300">{formatLikeCount(video.likeCount)}</span>
-                </div>
-                <div className="opacity-0 group-hover:opacity-100 transition-opacity">
-                  <span className="text-xs text-gray-400 bg-gray-700/50 px-2 py-1 rounded">
-                    Click to open stream
-                  </span>
-                </div>
-              </div>
+        
+        {metadata.length === 0 ? (
+          <div style={{ textAlign: 'center', padding: '48px 24px' }}>
+            <div style={{ marginBottom: '16px' }}>
+              <svg width="48" height="48" viewBox="0 0 24 24" fill="currentColor" style={{ margin: '0 auto', color: 'var(--text-muted)' }}>
+                <path d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
             </div>
-          ))}
-        </div>
-      )}
+            <p className="text-lg text-secondary" style={{ marginBottom: '8px' }}>No streams to display</p>
+            <p className="text-muted">Add YouTube live URLs to see their metadata</p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-2" style={{ gap: '16px' }}>
+            {metadata.map((video) => (
+              <div 
+                key={video.videoId}
+                onClick={() => openVideoUrl(video.videoUrl)}
+                className="container-box"
+                style={{ 
+                  cursor: 'pointer',
+                  overflow: 'hidden',
+                  transition: 'all 0.2s ease'
+                }}
+              >
+                {/* Thumbnail with overlay */}
+                <div style={{ position: 'relative', aspectRatio: '16/9' }}>
+                  <img 
+                    src={getYouTubeThumbnail(video.videoId)} 
+                    alt={formatTitle(video.title)} 
+                    style={{ 
+                      width: '100%', 
+                      height: '100%', 
+                      objectFit: 'cover',
+                      border: '1px solid var(--border)'
+                    }}
+                  />
+                  <div style={{
+                    position: 'absolute',
+                    inset: 0,
+                    background: 'linear-gradient(to top, rgba(17, 24, 39, 0.9), transparent)'
+                  }}></div>
+                  
+                  {/* Live indicator */}
+                  {video.isLive && (
+                    <div 
+                      className="status-indicator status-live"
+                      style={{
+                        position: 'absolute',
+                        top: '12px',
+                        left: '12px',
+                        textTransform: 'uppercase',
+                        fontSize: '11px',
+                        fontWeight: '700'
+                      }}
+                    >
+                      <div style={{ 
+                        width: '6px', 
+                        height: '6px', 
+                        borderRadius: '50%', 
+                        background: 'currentColor',
+                        animation: 'pulse 1.5s infinite'
+                      }}></div>
+                      Live
+                    </div>
+                  )}
+                  
+                  {/* View count */}
+                  <div style={{
+                    position: 'absolute',
+                    bottom: '12px',
+                    right: '12px',
+                    background: 'rgba(0, 0, 0, 0.8)',
+                    color: 'white',
+                    fontSize: '11px',
+                    padding: '4px 8px',
+                    border: '1px solid var(--border-light)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '4px'
+                  }}>
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+                      <path d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                      <path d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                    </svg>
+                    {formatNumber(video.viewCount)}
+                  </div>
+                  
+                  {/* Title overlay */}
+                  <div style={{
+                    position: 'absolute',
+                    bottom: 0,
+                    left: 0,
+                    right: 0,
+                    padding: '12px'
+                  }}>
+                    <h3 className="text-sm text-primary" style={{ 
+                      marginBottom: '4px',
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis',
+                      whiteSpace: 'nowrap',
+                      fontWeight: '600'
+                    }}>
+                      {formatTitle(video.title)}
+                    </h3>
+                    <p className="text-xs text-secondary" style={{
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis',
+                      whiteSpace: 'nowrap'
+                    }}>
+                      {video.channelName}
+                    </p>
+                  </div>
+                </div>
+                
+                {/* Footer with stats */}
+                <div className="container-section" style={{ 
+                  display: 'flex', 
+                  alignItems: 'center', 
+                  justifyContent: 'space-between',
+                  padding: '12px 16px'
+                }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" className="text-muted">
+                      <path d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                    </svg>
+                    <span className="text-sm text-secondary">{formatLikeCount(video.likeCount)}</span>
+                  </div>
+                  <div className="text-xs text-muted">
+                    Click to open
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
     </div>
   );
 };

@@ -279,37 +279,56 @@ export default function UrlForm({ onSubmit, loading }: UrlFormProps) {
     return (
       <div 
         ref={dropdownRef}
-        className="absolute z-10 mt-1 w-full bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl shadow-lg overflow-hidden"
+        className="container-box"
+        style={{
+          position: 'absolute',
+          zIndex: 20,
+          marginTop: '4px',
+          width: '100%',
+          maxHeight: '300px',
+          overflow: 'hidden'
+        }}
       >
-        <div className="p-2 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center">
-          <span className="text-sm font-medium text-gray-600 dark:text-gray-300">Recent URLs</span>
-          {urlHistory.length > 0 && (
-            <button 
-              type="button" 
-              onClick={clearHistory}
-              className="text-xs text-red-500 hover:text-red-600 dark:text-red-400 dark:hover:text-red-300"
-            >
-              Clear All
-            </button>
-          )}
+        <div className="container-section" style={{ borderBottom: '1px solid var(--border)', padding: '12px 16px' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <span className="text-sm text-secondary">Recent URLs</span>
+            {urlHistory.length > 0 && (
+              <button 
+                type="button" 
+                onClick={clearHistory}
+                className="btn btn-secondary text-xs"
+                style={{ padding: '4px 8px' }}
+              >
+                Clear All
+              </button>
+            )}
+          </div>
         </div>
-        <div className="max-h-60 overflow-y-auto p-1">
+        <div style={{ maxHeight: '240px', overflowY: 'auto', padding: '4px' }}>
           {urlHistory.length === 0 ? (
-            <p className="text-sm text-gray-500 dark:text-gray-400 p-3 text-center">No recent URLs</p>
+            <p className="text-sm text-muted" style={{ padding: '12px', textAlign: 'center' }}>No recent URLs</p>
           ) : (
-            <ul>
+            <div>
               {urlHistory.map((url, index) => (
-                <li key={index}>
-                  <button
-                    type="button"
-                    onClick={() => applyHistoryUrl(url, inputNumber)}
-                    className="w-full text-left p-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded truncate"
-                  >
-                    {url}
-                  </button>
-                </li>
+                <button
+                  key={index}
+                  type="button"
+                  onClick={() => applyHistoryUrl(url, inputNumber)}
+                  className="btn btn-secondary text-sm"
+                  style={{ 
+                    width: '100%', 
+                    textAlign: 'left', 
+                    margin: '2px', 
+                    padding: '8px 12px',
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
+                    whiteSpace: 'nowrap'
+                  }}
+                >
+                  {url}
+                </button>
               ))}
-            </ul>
+            </div>
           )}
         </div>
       </div>
@@ -327,26 +346,21 @@ export default function UrlForm({ onSubmit, loading }: UrlFormProps) {
   const getButtonIcon = () => {
     if (loading) {
       return (
-        <svg className="animate-spin size-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-        </svg>
+        <div className="loading-spinner"></div>
       );
     }
     
     if (tracking) {
       return (
-        <svg xmlns="http://www.w3.org/2000/svg" className="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 10a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1h-4a1 1 0 01-1-1v-4z" />
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M6 6h12v12H6V6z"/>
         </svg>
       );
     }
     
     return (
-      <svg xmlns="http://www.w3.org/2000/svg" className="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+        <path d="M8 5v14l11-7z"/>
       </svg>
     );
   };
@@ -402,63 +416,85 @@ export default function UrlForm({ onSubmit, loading }: UrlFormProps) {
     return (
       <div 
         ref={channelVideosDropdownRef}
-        className="absolute z-20 mt-1 w-full bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl shadow-lg overflow-hidden"
+        className="container-box"
+        style={{
+          position: 'absolute',
+          zIndex: 30,
+          marginTop: '4px',
+          width: '100%',
+          maxHeight: '400px',
+          overflow: 'hidden'
+        }}
       >
-        <div className="p-2 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center">
-          <span className="text-sm font-medium text-gray-600 dark:text-gray-300">Live Videos from Channel</span>
-          <button 
-            type="button" 
-            onClick={() => setShowChannelVideos(false)}
-            className="text-xs text-gray-500 hover:text-gray-600 dark:text-gray-400 dark:hover:text-gray-300"
-          >
-            Close
-          </button>
+        <div className="container-section" style={{ borderBottom: '1px solid var(--border)', padding: '12px 16px' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <span className="text-sm text-secondary">Live Videos from Channel</span>
+            <button 
+              type="button" 
+              onClick={() => setShowChannelVideos(false)}
+              className="btn btn-secondary text-xs"
+              style={{ padding: '4px 8px' }}
+            >
+              Close
+            </button>
+          </div>
         </div>
-        <div className="max-h-80 overflow-y-auto p-2">
+        <div style={{ maxHeight: '320px', overflowY: 'auto', padding: '8px' }}>
           {fetchingChannelVideos ? (
-            <div className="flex items-center justify-center p-4">
-              <div className="animate-spin size-5 border-2 border-gray-300 dark:border-gray-600 border-t-blue-600 dark:border-t-blue-400 rounded-full mr-2"></div>
-              <span className="text-sm text-gray-600 dark:text-gray-400">Fetching live videos...</span>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '16px' }}>
+              <div className="loading-spinner" style={{ marginRight: '8px' }}></div>
+              <span className="text-sm text-secondary">Fetching live videos...</span>
             </div>
           ) : channelVideos.length === 0 ? (
-            <p className="text-sm text-gray-500 dark:text-gray-400 p-3 text-center">No live videos found</p>
+            <p className="text-sm text-muted" style={{ padding: '12px', textAlign: 'center' }}>No live videos found</p>
           ) : (
-            <ul className="space-y-2">
+            <div className="space-y-4">
               {channelVideos.map((video) => (
-                <li key={video.videoId}>
-                  <button
-                    type="button"
-                    onClick={() => selectChannelVideo(video.videoUrl, inputNumber)}
-                    className="w-full text-left p-2 text-sm bg-gray-50 dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg flex items-center gap-3"
-                  >
-                    <img 
-                      src={video.thumbnailUrl || `https://i.ytimg.com/vi/${video.videoId}/hqdefault.jpg`} 
-                      alt={video.title} 
-                      className="w-16 h-9 object-cover rounded flex-shrink-0"
-                      loading="lazy"
-                      onError={(e) => {
-                        // Fallback to default thumbnail if error loading
-                        const target = e.target as HTMLImageElement;
-                        target.src = `https://i.ytimg.com/vi/${video.videoId}/hqdefault.jpg`;
-                        // If that also fails, use a placeholder
-                        target.onerror = () => {
-                          target.src = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='9' viewBox='0 0 16 9'%3E%3Crect width='16' height='9' fill='%23333'/%3E%3C/svg%3E";
-                          target.onerror = null;
-                        };
-                      }}
-                    />
-                    <div className="flex-1 min-w-0">
-                      <h3 className="font-medium text-gray-900 dark:text-gray-100 truncate">{video.title}</h3>
-                      <div className="flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400">
-                        <span>{video.channelName}</span>
-                        <span>•</span>
-                        <span>{video.viewCount.toLocaleString()} viewers</span>
-                      </div>
+                <button
+                  key={video.videoId}
+                  type="button"
+                  onClick={() => selectChannelVideo(video.videoUrl, inputNumber)}
+                  className="container-box"
+                  style={{ 
+                    width: '100%', 
+                    textAlign: 'left', 
+                    padding: '12px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '12px'
+                  }}
+                >
+                  <img 
+                    src={video.thumbnailUrl || `https://i.ytimg.com/vi/${video.videoId}/hqdefault.jpg`} 
+                    alt={video.title} 
+                    style={{ 
+                      width: '64px', 
+                      height: '36px', 
+                      objectFit: 'cover',
+                      border: '1px solid var(--border)',
+                      flexShrink: 0
+                    }}
+                    loading="lazy"
+                    onError={(e) => {
+                      const target = e.target as HTMLImageElement;
+                      target.src = `https://i.ytimg.com/vi/${video.videoId}/hqdefault.jpg`;
+                      target.onerror = () => {
+                        target.src = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='9' viewBox='0 0 16 9'%3E%3Crect width='16' height='9' fill='%23333'/%3E%3C/svg%3E";
+                        target.onerror = null;
+                      };
+                    }}
+                  />
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <h3 className="text-sm text-primary" style={{ marginBottom: '4px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{video.title}</h3>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }} className="text-xs text-muted">
+                      <span>{video.channelName}</span>
+                      <span>•</span>
+                      <span>{video.viewCount.toLocaleString()} viewers</span>
                     </div>
-                  </button>
-                </li>
+                  </div>
+                </button>
               ))}
-            </ul>
+            </div>
           )}
         </div>
       </div>
@@ -466,27 +502,36 @@ export default function UrlForm({ onSubmit, loading }: UrlFormProps) {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-5">
+    <form onSubmit={handleSubmit} className="space-y-6">
       <div className="space-y-4">
-        <div className="relative">
-          <div className="flex">
+        <div style={{ position: 'relative' }}>
+          <div style={{ display: 'flex' }}>
             <input
               type="text"
               id="url1"
               value={url1}
               onChange={e => setUrl1(e.target.value)}
               placeholder="Enter YouTube URL (video or channel)"
-              className="w-full px-4 py-3 pr-36 border border-gray-200 dark:border-gray-700 rounded-xl bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500 outline-none transition-shadow shadow-sm focus:shadow-md"
+              className="input"
+              style={{ paddingRight: '160px' }}
             />
-            <div className="absolute right-2 top-1/2 -translate-y-1/2 flex gap-1">
+            <div style={{
+              position: 'absolute',
+              right: '8px',
+              top: '50%',
+              transform: 'translateY(-50%)',
+              display: 'flex',
+              gap: '4px'
+            }}>
               <button
                 type="button"
                 onClick={() => clearInput(1)}
-                className="px-2 py-1.5 text-sm rounded-lg text-gray-600 dark:text-gray-300 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 font-medium transition-colors"
+                className="btn btn-secondary"
+                style={{ padding: '6px 8px' }}
                 aria-label="Clear URL"
               >
-                <svg xmlns="http://www.w3.org/2000/svg" className="size-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M6 18L18 6M6 6l12 12" />
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M6 18L18 6M6 6l12 12" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
                 </svg>
               </button>
               <button
@@ -497,33 +542,30 @@ export default function UrlForm({ onSubmit, loading }: UrlFormProps) {
                   setShowHistory3(false);
                   setShowChannelVideos(false);
                 }}
-                className="px-2 py-1.5 text-sm rounded-lg text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-gray-100 dark:hover:bg-gray-700/50 font-medium transition-colors"
+                className="btn btn-secondary"
+                style={{ padding: '6px 8px' }}
                 aria-label="Show recent URLs"
               >
-                <svg xmlns="http://www.w3.org/2000/svg" className="size-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
                 </svg>
               </button>
               {isValidYouTubeChannelUrl(url1) && (
                 <button
                   type="button"
                   onClick={() => fetchChannelVideosHandler(url1)}
-                  className="px-3 py-1.5 text-sm rounded-lg text-purple-600 dark:text-purple-400 hover:text-purple-800 dark:hover:text-purple-300 hover:bg-purple-50 dark:hover:bg-purple-900/30 font-medium transition-colors flex items-center gap-1.5"
+                  className="btn btn-primary text-xs"
+                  style={{ padding: '6px 8px' }}
                 >
-                  <svg xmlns="http://www.w3.org/2000/svg" className="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
-                  </svg>
-                  Get Lives
+                  Live
                 </button>
               )}
               <button
                 type="button"
                 onClick={() => pasteFromClipboard(setUrl1)}
-                className="px-3 py-1.5 text-sm rounded-lg text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 hover:bg-blue-50 dark:hover:bg-blue-900/30 font-medium transition-colors flex items-center gap-1.5"
+                className="btn btn-primary text-xs"
+                style={{ padding: '6px 8px' }}
               >
-                <svg xmlns="http://www.w3.org/2000/svg" className="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-                </svg>
                 Paste
               </button>
             </div>
@@ -538,25 +580,34 @@ export default function UrlForm({ onSubmit, loading }: UrlFormProps) {
         
         {expanded ? (
           <>
-            <div className="relative">
-              <div className="flex">
+            <div style={{ position: 'relative' }}>
+              <div style={{ display: 'flex' }}>
                 <input
                   type="text"
                   id="url2"
                   value={url2}
                   onChange={e => setUrl2(e.target.value)}
                   placeholder="Enter YouTube URL (video or channel)"
-                  className="w-full px-4 py-3 pr-36 border border-gray-200 dark:border-gray-700 rounded-xl bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500 outline-none transition-shadow shadow-sm focus:shadow-md"
+                  className="input"
+                  style={{ paddingRight: '160px' }}
                 />
-                <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-1">
+                <div style={{
+                  position: 'absolute',
+                  right: '8px',
+                  top: '50%',
+                  transform: 'translateY(-50%)',
+                  display: 'flex',
+                  gap: '4px'
+                }}>
                   <button
                     type="button"
                     onClick={() => clearInput(2)}
-                    className="px-2 py-1.5 text-sm rounded-lg text-gray-600 dark:text-gray-300 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 font-medium transition-colors"
+                    className="btn btn-secondary"
+                    style={{ padding: '6px 8px' }}
                     aria-label="Clear URL"
                   >
-                    <svg xmlns="http://www.w3.org/2000/svg" className="size-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M6 18L18 6M6 6l12 12" />
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                      <path d="M6 18L18 6M6 6l12 12" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
                     </svg>
                   </button>
                   <button
@@ -567,36 +618,31 @@ export default function UrlForm({ onSubmit, loading }: UrlFormProps) {
                       setShowHistory3(false);
                       setShowChannelVideos(false);
                     }}
-                    className="px-2 py-1.5 text-sm rounded-lg text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-gray-100 dark:hover:bg-gray-700/50 font-medium transition-colors"
+                    className="btn btn-secondary"
+                    style={{ padding: '6px 8px' }}
                     aria-label="Show recent URLs"
                   >
-                    <svg xmlns="http://www.w3.org/2000/svg" className="size-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                      <path d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
                     </svg>
                   </button>
                   {isValidYouTubeChannelUrl(url2) && (
                     <button
                       type="button"
                       onClick={() => fetchChannelVideosHandler(url2)}
-                      className="px-3 py-1.5 text-sm rounded-lg text-purple-600 dark:text-purple-400 hover:text-purple-800 dark:hover:text-purple-300 hover:bg-purple-50 dark:hover:bg-purple-900/30 font-medium transition-colors flex items-center gap-1.5"
+                      className="btn btn-primary text-xs"
+                      style={{ padding: '6px 8px' }}
                     >
-                      <svg xmlns="http://www.w3.org/2000/svg" className="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
-                      </svg>
-                      Get Lives
+                      Live
                     </button>
                   )}
                   <button
                     type="button"
                     onClick={() => pasteFromClipboard(setUrl2)}
-                    className="px-3 py-1.5 text-sm rounded-lg text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 hover:bg-blue-50 dark:hover:bg-blue-900/30 font-medium transition-colors"
+                    className="btn btn-primary text-xs"
+                    style={{ padding: '6px 8px' }}
                   >
-                    <div className="flex items-center gap-1.5">
-                      <svg xmlns="http://www.w3.org/2000/svg" className="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-                      </svg>
-                      Paste
-                    </div>
+                    Paste
                   </button>
                 </div>
               </div>
@@ -608,25 +654,34 @@ export default function UrlForm({ onSubmit, loading }: UrlFormProps) {
               {showChannelVideos && renderChannelVideosDropdown(2)}
             </div>
             
-            <div className="relative">
-              <div className="flex">
+            <div style={{ position: 'relative' }}>
+              <div style={{ display: 'flex' }}>
                 <input
                   type="text"
                   id="url3"
                   value={url3}
                   onChange={e => setUrl3(e.target.value)}
                   placeholder="Enter YouTube URL (video or channel)"
-                  className="w-full px-4 py-3 pr-36 border border-gray-200 dark:border-gray-700 rounded-xl bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500 outline-none transition-shadow shadow-sm focus:shadow-md"
+                  className="input"
+                  style={{ paddingRight: '160px' }}
                 />
-                <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-1">
+                <div style={{
+                  position: 'absolute',
+                  right: '8px',
+                  top: '50%',
+                  transform: 'translateY(-50%)',
+                  display: 'flex',
+                  gap: '4px'
+                }}>
                   <button
                     type="button"
                     onClick={() => clearInput(3)}
-                    className="px-2 py-1.5 text-sm rounded-lg text-gray-600 dark:text-gray-300 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 font-medium transition-colors"
+                    className="btn btn-secondary"
+                    style={{ padding: '6px 8px' }}
                     aria-label="Clear URL"
                   >
-                    <svg xmlns="http://www.w3.org/2000/svg" className="size-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M6 18L18 6M6 6l12 12" />
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                      <path d="M6 18L18 6M6 6l12 12" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
                     </svg>
                   </button>
                   <button
@@ -637,36 +692,31 @@ export default function UrlForm({ onSubmit, loading }: UrlFormProps) {
                       setShowHistory2(false);
                       setShowChannelVideos(false);
                     }}
-                    className="px-2 py-1.5 text-sm rounded-lg text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-gray-100 dark:hover:bg-gray-700/50 font-medium transition-colors"
+                    className="btn btn-secondary"
+                    style={{ padding: '6px 8px' }}
                     aria-label="Show recent URLs"
                   >
-                    <svg xmlns="http://www.w3.org/2000/svg" className="size-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                      <path d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
                     </svg>
                   </button>
                   {isValidYouTubeChannelUrl(url3) && (
                     <button
                       type="button"
                       onClick={() => fetchChannelVideosHandler(url3)}
-                      className="px-3 py-1.5 text-sm rounded-lg text-purple-600 dark:text-purple-400 hover:text-purple-800 dark:hover:text-purple-300 hover:bg-purple-50 dark:hover:bg-purple-900/30 font-medium transition-colors flex items-center gap-1.5"
+                      className="btn btn-primary text-xs"
+                      style={{ padding: '6px 8px' }}
                     >
-                      <svg xmlns="http://www.w3.org/2000/svg" className="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
-                      </svg>
-                      Get Lives
+                      Live
                     </button>
                   )}
                   <button
                     type="button"
                     onClick={() => pasteFromClipboard(setUrl3)}
-                    className="px-3 py-1.5 text-sm rounded-lg text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 hover:bg-blue-50 dark:hover:bg-blue-900/30 font-medium transition-colors"
+                    className="btn btn-primary text-xs"
+                    style={{ padding: '6px 8px' }}
                   >
-                    <div className="flex items-center gap-1.5">
-                      <svg xmlns="http://www.w3.org/2000/svg" className="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-                      </svg>
-                      Paste
-                    </div>
+                    Paste
                   </button>
                 </div>
               </div>
@@ -682,33 +732,35 @@ export default function UrlForm({ onSubmit, loading }: UrlFormProps) {
           <button 
             type="button" 
             onClick={() => setExpanded(true)}
-            className="flex items-center gap-1.5 text-sm text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 font-medium px-3 py-1.5 rounded-lg hover:bg-blue-50 dark:hover:bg-blue-900/30 transition-colors"
+            className="btn btn-secondary"
+            style={{ display: 'flex', alignItems: 'center', gap: '8px' }}
           >
-            <svg xmlns="http://www.w3.org/2000/svg" className="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M12 6v6m0 0v6m0-6h6m-6 0H6" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
             </svg>
             Add more URLs
           </button>
         )}
         
         {error && (
-          <div className="flex items-center gap-2 text-red-500 dark:text-red-400 text-sm bg-red-50 dark:bg-red-900/20 px-4 py-2.5 rounded-lg">
-            <svg xmlns="http://www.w3.org/2000/svg" className="size-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          <div className="error-box">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
             </svg>
             <span>{error}</span>
           </div>
         )}
         
-        <div className="flex justify-between">
-          <div className="flex gap-2">
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <div style={{ display: 'flex', gap: '8px' }}>
             <button
               type="button"
               onClick={clearAll}
-              className="text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 text-sm py-2 px-4 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors flex items-center gap-2"
+              className="btn btn-secondary"
+              style={{ display: 'flex', alignItems: 'center', gap: '8px' }}
             >
-              <svg xmlns="http://www.w3.org/2000/svg" className="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
               </svg>
               Clear All
             </button>
@@ -716,10 +768,11 @@ export default function UrlForm({ onSubmit, loading }: UrlFormProps) {
             <button
               type="button"
               onClick={restorePreviousSession}
-              className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 text-sm py-2 px-4 rounded-lg hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors flex items-center gap-2"
+              className="btn btn-secondary"
+              style={{ display: 'flex', alignItems: 'center', gap: '8px' }}
             >
-              <svg xmlns="http://www.w3.org/2000/svg" className="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
               </svg>
               Previous URLs
             </button>
@@ -728,11 +781,14 @@ export default function UrlForm({ onSubmit, loading }: UrlFormProps) {
           <button
             type="submit"
             disabled={loading}
-            className={`${
-              tracking 
-                ? 'bg-gradient-to-br from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 shadow-red-500/20 hover:shadow-red-500/30' 
-                : 'bg-gradient-to-br from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 shadow-blue-500/20 hover:shadow-blue-500/30'
-            } text-white px-6 py-3 rounded-xl disabled:opacity-70 transition-all font-medium text-sm flex items-center justify-center gap-2 shadow-lg hover:shadow-xl`}
+            className={`btn ${tracking ? 'btn-secondary' : 'btn-primary'}`}
+            style={{ 
+              display: 'flex', 
+              alignItems: 'center', 
+              gap: '8px',
+              padding: '10px 20px',
+              opacity: loading ? 0.7 : 1
+            }}
           >
             {getButtonIcon()}
             {getButtonText()}
