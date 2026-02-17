@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useEffect, useRef, useState, useMemo, memo, useCallback } from 'react';
-import { FixedSizeList as VirtualList } from 'react-window';
+import { VariableSizeList as VirtualList } from 'react-window';
 import AutoSizer from 'react-virtualized-auto-sizer';
 import { createPortal } from 'react-dom';
 import { Search, X, ArrowDown, Maximize2, Minimize2, Eye, ThumbsUp, MessageSquare, Palette } from 'lucide-react';
@@ -102,6 +102,8 @@ ChatLine.displayName = 'ChatLine';
 export default function ChatDisplay({ messages, videoMetadata = [] }: ChatDisplayProps) {
   const chatContainerRef = useRef<HTMLDivElement>(null);
   const listRef = useRef<VirtualList | null>(null);
+  const listWidthRef = useRef(400);
+  const sizeCacheRef = useRef<Map<number, number>>(new Map());
   const [autoScroll, setAutoScroll] = useState(true);
   const [filter, setFilter] = useState<string>('');
   const [chatColorMode, setChatColorMode] = useState<'default' | 'source'>('default');
@@ -349,8 +351,24 @@ export default function ChatDisplay({ messages, videoMetadata = [] }: ChatDispla
     return `hsl(${hue}, 80%, 65%)`;
   }, []);
 
-  // Compact row height for Twitch-style chat
-  const ITEM_SIZE = 28;
+  // Estimate row height based on message length and available width
+  const getItemSize = useCallback((index: number): number => {
+    if (sizeCacheRef.current.has(index)) return sizeCacheRef.current.get(index)!;
+    const message = filteredMessages[index];
+    if (!message) return 28;
+    const availableWidth = Math.max(100, listWidthRef.current - 160); // subtract time+dot+author+padding
+    const charsPerLine = Math.floor(availableWidth / 7.5);
+    const lines = Math.max(1, Math.ceil(message.message.length / charsPerLine));
+    const height = lines * 20 + 10;
+    sizeCacheRef.current.set(index, height);
+    return height;
+  }, [filteredMessages]);
+
+  // Reset size cache when messages change
+  useEffect(() => {
+    sizeCacheRef.current.clear();
+    if (listRef.current) listRef.current.resetAfterIndex(0);
+  }, [filteredMessages]);
 
   // Render a virtualized list item
   const renderRow = useCallback(({ index, style }: { index: number, style: React.CSSProperties }) => {
@@ -556,20 +574,23 @@ export default function ChatDisplay({ messages, videoMetadata = [] }: ChatDispla
         renderEmpty()
       ) : (
         <AutoSizer>
-          {({ height, width }) => (
-            <VirtualList
-              height={height}
-              width={width}
-              itemCount={filteredMessages.length}
-              itemSize={ITEM_SIZE}
-              ref={listRef}
-              onScroll={handleScroll}
-              overscanCount={15}
-              style={{ background: 'var(--bg-base)' }}
-            >
-              {renderRow}
-            </VirtualList>
-          )}
+          {({ height, width }) => {
+            listWidthRef.current = width;
+            return (
+              <VirtualList
+                height={height}
+                width={width}
+                itemCount={filteredMessages.length}
+                itemSize={getItemSize}
+                ref={listRef}
+                onScroll={handleScroll}
+                overscanCount={15}
+                style={{ background: 'var(--bg-base)' }}
+              >
+                {renderRow}
+              </VirtualList>
+            );
+          }}
         </AutoSizer>
       )}
 

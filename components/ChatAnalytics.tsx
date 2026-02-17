@@ -1,11 +1,11 @@
 'use client';
 
 import { useMemo, useState } from 'react';
-import { BarChart3, TrendingUp } from 'lucide-react';
+import { BarChart3, TrendingUp, MessageSquare, Users, Zap, Clock } from 'lucide-react';
 import { 
   Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, 
   Tooltip, Legend, ResponsiveContainer, AreaChart, Area, 
-  ComposedChart, PieChart, Pie, Cell, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar 
+  ComposedChart, PieChart, Pie, Cell
 } from 'recharts';
 
 interface VideoMetadata {
@@ -189,6 +189,17 @@ export default function ChatAnalytics({ messages, metadata }: ChatAnalyticsProps
     return Math.round((total * 0.5) + (users * 0.3) + (avgLen * 0.2));
   }, [filteredMessages]);
 
+  const msgsPerMinute = useMemo(() => {
+    if (filteredMessages.length < 2) return 0;
+    const times = filteredMessages.map(m => new Date(m.timestamp).getTime()).filter(t => !isNaN(t));
+    if (times.length < 2) return 0;
+    const rangeMs = Math.max(...times) - Math.min(...times);
+    if (rangeMs <= 0) return 0;
+    return Math.round((filteredMessages.length / rangeMs) * 60000 * 10) / 10;
+  }, [filteredMessages]);
+
+  const uniqueUsers = useMemo(() => new Set(filteredMessages.map(m => m.authorChannelId)).size, [filteredMessages]);
+
   const CustomTooltip = ({ active, payload, label }: CustomTooltipProps) => {
     if (!active || !payload?.length) return null;
     return (
@@ -232,6 +243,24 @@ export default function ChatAnalytics({ messages, metadata }: ChatAnalyticsProps
         </div>
       </div>
       
+      {/* Quick stats row */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+        {[
+          { label: 'Messages', value: filteredMessages.length.toLocaleString(), icon: MessageSquare, color: 'text-[var(--accent)]' },
+          { label: 'Users', value: uniqueUsers.toLocaleString(), icon: Users, color: 'text-[var(--green)]' },
+          { label: 'Msg / min', value: msgsPerMinute > 0 ? msgsPerMinute.toLocaleString() : '—', icon: Clock, color: 'text-[var(--yellow)]' },
+          { label: 'Streams', value: metadata.length.toLocaleString(), icon: Zap, color: 'text-[var(--blue)]' },
+        ].map(s => (
+          <div key={s.label} className={`${cardClass} flex items-center gap-3 px-4 py-3`}>
+            <s.icon className={`w-4 h-4 ${s.color} flex-shrink-0`} />
+            <div className="min-w-0">
+              <p className="text-[10px] font-semibold text-[var(--text-muted)] uppercase tracking-wide">{s.label}</p>
+              <p className={`text-lg font-extrabold ${s.color} tabular-nums leading-none`}>{s.value}</p>
+            </div>
+          </div>
+        ))}
+      </div>
+
       {/* Row 1: Activity + Score */}
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-4">
         <div className={`lg:col-span-3 ${cardClass}`}>
@@ -293,29 +322,7 @@ export default function ChatAnalytics({ messages, metadata }: ChatAnalyticsProps
         </div>
       </div>
       
-      {/* Row 3: Radar */}
-      <div className={cardClass}>
-        <div className={cardHeaderClass}>
-          <span className={cardTitleClass}>Metrics Comparison</span>
-        </div>
-        <div className="h-72 p-2">
-          {engagementChartData.length > 0 ? (
-            <ResponsiveContainer width="100%" height="100%">
-              <RadarChart cx="50%" cy="50%" outerRadius="75%" data={engagementChartData}>
-                <PolarGrid stroke="var(--border)" />
-                <PolarAngleAxis dataKey="name" tick={{ fill: '#737380', fontSize: 10 }} />
-                <PolarRadiusAxis angle={30} domain={[0, 'auto']} tick={{ fill: '#737380', fontSize: 9 }} />
-                <Radar name="Chat" dataKey="comments" stroke={COLORS.comments} fill={COLORS.comments} fillOpacity={0.5} />
-                <Radar name="Likes" dataKey="likes" stroke={COLORS.likes} fill={COLORS.likes} fillOpacity={0.4} />
-                <Legend wrapperStyle={{ fontSize: '11px' }} />
-                <Tooltip content={<CustomTooltip />} />
-              </RadarChart>
-            </ResponsiveContainer>
-          ) : <EmptyState />}
-        </div>
-      </div>
-      
-      {/* Row 4: Chatters + Words */}
+      {/* Row 3: Chatters + Words */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         <div className={cardClass}>
           <div className={cardHeaderClass}>
