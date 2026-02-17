@@ -4,6 +4,7 @@ import React, { useEffect, useRef, useState, useMemo, memo, useCallback } from '
 import { FixedSizeList as VirtualList } from 'react-window';
 import AutoSizer from 'react-virtualized-auto-sizer';
 import { createPortal } from 'react-dom';
+import { Search, X, ArrowDown, Maximize2, Minimize2, Eye, ThumbsUp, MessageSquare, Palette } from 'lucide-react';
 
 interface SourceVideo {
   url: string;
@@ -30,6 +31,15 @@ interface VideoMetadata {
   thumbnailUrl?: string; // Added for thumbnail display
 }
 
+type YouTubeTitle =
+  | string
+  | {
+      runs?: Array<{ text: string }>;
+      simpleText?: string;
+    }
+  | null
+  | undefined;
+
 interface ChatMessage {
   id: string;
   message: string;
@@ -47,123 +57,47 @@ interface ChatDisplayProps {
   videoMetadata?: VideoMetadata[]; // Add optional video metadata
 }
 
-// Memoized message item component for virtualized rendering
-const MessageItem = memo(({ message, getColor, formatTime, renderMessageWithEmojis, chatColorMode }: {
+// Twitch-style compact inline message row
+const ChatLine = memo(({ message, getColor, formatTime, renderMessageWithEmojis, chatColorMode }: {
   message: ChatMessage;
   getColor: (str: string) => string;
   formatTime: (timestamp: string) => string;
   renderMessageWithEmojis: (message: ChatMessage) => React.ReactNode;
   chatColorMode: 'default' | 'source';
 }) => {
+  const badgeClass =
+    message.userType === 'moderator' ? 'chat-badge chat-badge-mod'
+    : message.userType === 'member' ? 'chat-badge chat-badge-member'
+    : message.userType === 'owner' ? 'chat-badge chat-badge-owner'
+    : null;
+
+  const badgeLabel =
+    message.userType === 'moderator' ? 'MOD'
+    : message.userType === 'member' ? 'VIP'
+    : message.userType === 'owner' ? 'OWNER'
+    : null;
+
+  const nameColor = chatColorMode === 'source'
+    ? getColor(message.sourceVideo.id)
+    : getColor(message.authorChannelId);
+
+  const srcColor = getColor(message.sourceVideo.id);
+
   return (
-    <div className="container-box" style={{ marginBottom: '8px', padding: '12px' }}>
-      <div style={{ display: 'flex', alignItems: 'flex-start', marginBottom: '8px' }}>
-        {message.profileImage ? (
-          <img 
-            src={message.profileImage} 
-            alt={message.authorName}
-            style={{ 
-              width: '28px', 
-              height: '28px', 
-              border: '1px solid var(--border-light)',
-              marginRight: '8px',
-              flexShrink: 0
-            }}
-            loading="lazy"
-          />
-        ) : (
-          <div
-            style={{
-              width: '28px',
-              height: '28px',
-              backgroundColor: getColor(message.authorChannelId),
-              border: '1px solid var(--border-light)',
-              marginRight: '8px',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              color: 'white',
-              fontSize: '12px',
-              fontWeight: '600',
-              flexShrink: 0
-            }}
-          >
-            {message.authorName.charAt(0).toUpperCase()}
-          </div>
-        )}
-        
-        <div style={{ flex: 1, minWidth: 0, overflow: 'hidden' }}>
-          <div style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: '8px', marginBottom: '4px' }}>
-            <span 
-              className="text-sm text-primary"
-              style={{ 
-                color: chatColorMode === 'source' 
-                  ? getColor(message.sourceVideo.id)
-                  : getColor(message.authorChannelId),
-                fontWeight: '600',
-                overflow: 'hidden',
-                textOverflow: 'ellipsis',
-                whiteSpace: 'nowrap',
-                maxWidth: '200px'
-              }}
-            >
-              {message.authorName}
-            </span>
-            
-            {message.userType && (
-              <span className={`text-xs status-indicator ${
-                message.userType === 'moderator' 
-                  ? 'status-live'
-                  : message.userType === 'member'
-                  ? ''
-                  : message.userType === 'owner'
-                  ? ''
-                  : ''
-              }`} style={{ 
-                padding: '2px 6px',
-                fontSize: '10px',
-                fontWeight: '700',
-                textTransform: 'uppercase'
-              }}>
-                {message.userType === 'moderator' ? 'MOD' : 
-                message.userType === 'member' ? 'MEMBER' : 
-                message.userType === 'owner' ? 'OWNER' : ''}
-              </span>
-            )}
-            
-            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }} className="text-xs text-muted">
-              <span>{formatTime(message.timestamp)}</span>
-              <span>•</span>
-              <span 
-                className="text-xs"
-                style={{
-                  backgroundColor: `${getColor(message.sourceVideo.id)}20`,
-                  color: getColor(message.sourceVideo.id),
-                  padding: '2px 6px',
-                  border: '1px solid var(--border-light)',
-                  fontSize: '10px',
-                  fontWeight: '600'
-                }}
-              >
-                {message.sourceVideo.id.substring(0, 6)}
-              </span>
-            </div>
-          </div>
-          
-          <p className="text-sm text-secondary" style={{ 
-            wordBreak: 'break-word', 
-            lineHeight: '1.4',
-            margin: 0
-          }}>
-            {renderMessageWithEmojis(message)}
-          </p>
-        </div>
-      </div>
+    <div className="chat-line">
+      <span className="chat-time">{formatTime(message.timestamp)}</span>
+      <span className="chat-src-dot" style={{ backgroundColor: srcColor }} title={message.sourceVideo.id} />
+      {badgeLabel && <span className={badgeClass!}>{badgeLabel}</span>}
+      <span className="chat-author" style={{ color: nameColor }} title={message.authorName}>
+        {message.authorName}
+      </span>
+      <span className="text-[var(--text-muted)] mx-1">:</span>
+      <span className="chat-msg">{renderMessageWithEmojis(message)}</span>
     </div>
   );
 });
 
-MessageItem.displayName = 'MessageItem';
+ChatLine.displayName = 'ChatLine';
 
 export default function ChatDisplay({ messages, videoMetadata = [] }: ChatDisplayProps) {
   const chatContainerRef = useRef<HTMLDivElement>(null);
@@ -194,10 +128,10 @@ export default function ChatDisplay({ messages, videoMetadata = [] }: ChatDispla
       div.style.overflow = 'hidden';
       div.style.margin = '0';
       div.style.padding = '0';
-      div.style.background = 'var(--background)';
+      div.style.background = 'var(--bg-base)';
       div.style.opacity = '0';
       div.style.visibility = 'hidden';
-      div.style.transition = 'opacity 0.3s ease-in-out';
+      div.style.transition = 'opacity 0.2s ease-in-out';
       document.body.appendChild(div);
       portalRef.current = div;
     }
@@ -224,7 +158,7 @@ export default function ChatDisplay({ messages, videoMetadata = [] }: ChatDispla
           if (portalRef.current) {
             portalRef.current.style.visibility = 'hidden';
           }
-        }, 300);
+        }, 200);
         document.body.style.overflow = '';
       }
     }
@@ -264,13 +198,7 @@ export default function ChatDisplay({ messages, videoMetadata = [] }: ChatDispla
           src={emoji.url} 
           alt={emoji.label} 
           title={emoji.label}
-          style={{ 
-            height: '1.2em', 
-            width: 'auto', 
-            margin: '0 1px',
-            display: 'inline-block',
-            verticalAlign: 'middle'
-          }}
+          className="inline-block align-middle h-5 w-auto mx-px"
           key={`${emoji.emojiId}-${uniqueIndex}`}
           loading="lazy"
         />
@@ -379,12 +307,6 @@ export default function ChatDisplay({ messages, videoMetadata = [] }: ChatDispla
     }
   }, []);
 
-  // Format number with comma separators
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const formatNumber = (num: number): string => {
-    return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
-  };
-
   // Handle scroll events to toggle auto-scroll
   const handleScroll = useCallback(({ scrollOffset, scrollUpdateWasRequested }: {
     scrollOffset: number;
@@ -396,7 +318,7 @@ export default function ChatDisplay({ messages, videoMetadata = [] }: ChatDispla
     if (listRef.current) {
       try {
         // Use any type to access internal property
-        const outerRef = (listRef.current as any)._outerRef;
+        const outerRef = (listRef.current as unknown as { _outerRef?: HTMLElement })._outerRef;
         if (outerRef) {
           const { clientHeight, scrollHeight } = outerRef;
           // Consider user "at bottom" if within 100px of the bottom
@@ -410,39 +332,32 @@ export default function ChatDisplay({ messages, videoMetadata = [] }: ChatDispla
           // Update auto-scroll state based on user's scroll position
           setAutoScroll(atBottom);
         }
-      } catch (error) {
+      } catch {
         // Fallback if _outerRef is not available
         setAutoScroll(scrollOffset > 0);
       }
     }
   }, []);
 
-  // Generate a deterministic color based on a string
+  // Generate a deterministic color based on a string (Twitch-style vibrant colors)
   const getColor = useCallback((str: string): string => {
     let hash = 0;
     for (let i = 0; i < str.length; i++) {
       hash = str.charCodeAt(i) + ((hash << 5) - hash);
     }
-    
-    const hue = hash % 360;
-    return `hsl(${hue}, 70%, 45%)`;
+    const hue = ((hash % 360) + 360) % 360;
+    return `hsl(${hue}, 80%, 65%)`;
   }, []);
+
+  // Compact row height for Twitch-style chat
+  const ITEM_SIZE = 28;
 
   // Render a virtualized list item
   const renderRow = useCallback(({ index, style }: { index: number, style: React.CSSProperties }) => {
     const message = filteredMessages[index];
-    const adjustedStyle = {
-      ...style,
-      paddingLeft: '12px',
-      paddingRight: '12px',
-      paddingTop: index === 0 ? '12px' : '0',
-      paddingBottom: index === filteredMessages.length - 1 ? '12px' : '0',
-      width: '100%',
-    };
-    
     return (
-      <div style={adjustedStyle}>
-        <MessageItem 
+      <div style={style}>
+        <ChatLine
           message={message}
           getColor={getColor}
           formatTime={formatTime}
@@ -452,31 +367,6 @@ export default function ChatDisplay({ messages, videoMetadata = [] }: ChatDispla
       </div>
     );
   }, [filteredMessages, getColor, formatTime, renderMessageWithEmojis, chatColorMode]);
-
-  // Render empty message when there are no messages to display
-  const renderEmptyMessage = useCallback(() => (
-    <div style={{ textAlign: 'center', padding: '64px 24px' }}>
-      <div style={{ marginBottom: '16px' }}>
-        <svg width="64" height="64" viewBox="0 0 24 24" fill="currentColor" style={{ margin: '0 auto', color: 'var(--text-muted)' }}>
-          <path d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-        </svg>
-      </div>
-      <div>
-        <p className="text-lg text-secondary" style={{ marginBottom: '8px' }}>
-          {messages.length === 0 
-            ? 'No chat messages yet' 
-            : 'No messages match your filter criteria'
-          }
-        </p>
-        <p className="text-muted">
-          {messages.length === 0 
-            ? 'Waiting for messages to appear...' 
-            : 'Try changing your search terms'
-          }
-        </p>
-      </div>
-    </div>
-  ), [messages.length]);
 
   // Handle ESC key to exit fullscreen mode
   useEffect(() => {
@@ -513,488 +403,217 @@ export default function ChatDisplay({ messages, videoMetadata = [] }: ChatDispla
 
   // Format large numbers with abbreviations (e.g., 1500 -> 1.5K)
   const formatCompactNumber = useCallback((num?: number): string => {
-    if (num === undefined) return '-';
+    if (num === undefined || num === 0) return '0';
     return Intl.NumberFormat('en', { notation: 'compact' }).format(num);
   }, []);
 
   // Helper to get thumbnail URL from video ID
   const getYouTubeThumbnail = useCallback((videoId: string): string => {
-    // Return high quality thumbnail
     return `https://i.ytimg.com/vi/${videoId}/hqdefault.jpg`;
   }, []);
 
   // Helper to safely format title text from YouTube data
-  const formatTitle = useCallback((title: any): string => {
+  const formatTitle = useCallback((title: YouTubeTitle): string => {
     if (!title) return 'Live Stream';
-    
-    // Handle case where title is a string
     if (typeof title === 'string') return title;
-    
-    // Handle case where title is an object with 'runs' property (YouTube format)
     if (typeof title === 'object') {
-      // Check if it has 'runs' array (YouTube format)
       if (title.runs && Array.isArray(title.runs)) {
-        return title.runs.map((run: any) => run.text).join('');
+        return title.runs.map(run => run.text).join('');
       }
-      
-      // If it has a 'simpleText' property
-      if (title.simpleText) {
-        return title.simpleText;
-      }
-      
-      // Try to convert the object to a string if possible
-      try {
-        return String(title);
-      } catch (e) {
-        return 'Live Stream';
-      }
+      if (title.simpleText) return title.simpleText;
+      try { return String(title); } catch { return 'Live Stream'; }
     }
-    
     return 'Live Stream';
   }, []);
 
-  // Render the chat content (used by both normal and fullscreen mode)
-  const renderChatContent = () => (
-    <>
-      <div style={{ 
-        display: 'flex', 
-        flexDirection: window.innerWidth < 640 ? 'column' : 'row',
-        alignItems: 'center', 
-        justifyContent: 'space-between', 
-        gap: '16px', 
-        marginBottom: '16px' 
-      }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-          <h2 className="text-lg text-primary">Live Chat</h2>
-          <div className="status-indicator status-live">
-            {filteredMessages.length} messages
-          </div>
-        </div>
-        
-        <div style={{ 
-          display: 'flex', 
-          flexWrap: 'wrap', 
-          alignItems: 'center', 
-          gap: '8px',
-          width: window.innerWidth < 640 ? '100%' : 'auto'
-        }}>
-          <div style={{ position: 'relative', flex: '1', minWidth: '200px' }}>
-            <div style={{
-              position: 'absolute',
-              left: '12px',
-              top: '50%',
-              transform: 'translateY(-50%)',
-              pointerEvents: 'none'
-            }}>
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" className="text-muted">
-                <path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-              </svg>
-            </div>
-            <input
-              type="text"
-              placeholder="Filter messages..."
-              value={filter}
-              onChange={(e) => setFilter(e.target.value)}
-              className="input"
-              style={{ paddingLeft: '40px' }}
-            />
-          </div>
-          
-          <select 
-            value={chatColorMode} 
-            onChange={(e) => setChatColorMode(e.target.value as 'default' | 'source')}
-            className="input"
-            style={{ width: 'auto', minWidth: '140px' }}
-          >
-            <option value="default">Color by User</option>
-            <option value="source">Color by Source</option>
-          </select>
-          
-          <div style={{ display: 'flex', gap: '8px' }}>
-            <button
-              onClick={() => {
-                setAutoScroll(!autoScroll);
-                if (!autoScroll && listRef.current) {
-                  listRef.current.scrollToItem(filteredMessages.length - 1);
-                }
-              }}
-              className={`btn ${autoScroll ? 'btn-primary' : 'btn-secondary'}`}
-              style={{ display: 'flex', alignItems: 'center', gap: '6px' }}
-            >
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M19 14l-7 7m0 0l-7-7m7 7V3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-              </svg>
-              {autoScroll ? 'Auto' : 'Manual'}
-            </button>
+  // ── Source Bar with like counts ──
+  const renderSourceBar = () => {
+    const sourceIds = [...new Set(messages.map(m => m.sourceVideo.id))];
+    if (sourceIds.length === 0) return null;
 
-            <button
-              onClick={() => setIsFullscreen(!isFullscreen)}
-              className="btn btn-primary"
-              style={{ display: 'flex', alignItems: 'center', gap: '6px' }}
-              aria-label={isFullscreen ? "Exit Full Screen" : "Full Screen"}
-            >
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5v-4m0 4h-4m4 0l-5-5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-              </svg>
-              {isFullscreen ? 'Exit' : 'Full'}
-            </button>
-          </div>
-        </div>
+    return (
+      <div className="source-bar">
+        {sourceIds.map(sourceId => {
+          const meta = videoMetadata.find(m => m.videoId === sourceId);
+          const msgCount = messageCountsBySource[sourceId] || 0;
+          const color = getColor(sourceId);
+
+          return (
+            <div key={sourceId} className="source-pill" style={{ borderLeftColor: color, borderLeftWidth: '3px' }}>
+              <img
+                src={meta?.thumbnailUrl || getYouTubeThumbnail(sourceId)}
+                alt=""
+                className="source-pill-thumb"
+                loading="lazy"
+              />
+              <div className="flex flex-col gap-0.5 min-w-0">
+                <span className="source-pill-title">{formatTitle(meta?.title)}</span>
+                <div className="flex items-center gap-2.5">
+                  <span className="source-pill-stat"><Eye className="w-3 h-3" />{formatCompactNumber(meta?.viewCount)}</span>
+                  <span className="source-pill-stat"><ThumbsUp className="w-3 h-3" />{formatCompactNumber(meta?.likeCount)}</span>
+                  <span className="source-pill-stat"><MessageSquare className="w-3 h-3" />{msgCount}</span>
+                </div>
+              </div>
+            </div>
+          );
+        })}
       </div>
-      
-      {filteredMessages.length === 0 ? (
-        <div className="container-box">
-          <div className="container-section">
-            {renderEmptyMessage()}
-          </div>
-        </div>
-      ) : (
-        <div 
-          className="container-box"
-          style={{ 
-            height: isFullscreen ? "calc(100vh - 200px)" : "600px", 
-            width: '100%',
-            overflow: 'hidden'
-          }}
-          ref={chatContainerRef}
-        >
-          <AutoSizer>
-            {({ height, width }) => (
-              <VirtualList
-                height={height}
-                width={width}
-                itemCount={filteredMessages.length}
-                itemSize={90}
-                ref={listRef}
-                onScroll={handleScroll}
-                overscanCount={8}
-                style={{ background: 'var(--card-bg)' }}
-              >
-                {renderRow}
-              </VirtualList>
-            )}
-          </AutoSizer>
-          
-          {!autoScroll && (
-            <div style={{
-              position: 'sticky',
-              bottom: '16px',
-              display: 'flex',
-              justifyContent: 'center'
-            }}>
-              <button
-                onClick={() => {
-                  setAutoScroll(true);
-                  if (listRef.current) {
-                    listRef.current.scrollToItem(filteredMessages.length - 1);
-                  }
-                }}
-                className="btn btn-primary"
-                style={{ 
-                  display: 'flex', 
-                  alignItems: 'center', 
-                  gap: '8px',
-                  boxShadow: '0 4px 6px rgba(0, 0, 0, 0.2)'
-                }}
-              >
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-                  <path d="M19 14l-7 7m0 0l-7-7m7 7V3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                </svg>
-                Scroll to Latest
-              </button>
-            </div>
-          )}
+    );
+  };
 
-          {isFullscreen && (
-            <div style={{
-              position: 'absolute',
-              top: '8px',
-              right: '8px'
-            }}>
-              <button
-                onClick={() => setIsFullscreen(false)}
-                className="btn btn-secondary"
-                style={{ padding: '8px' }}
-                aria-label="Exit Full Screen"
-              >
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-                  <path d="M6 18L18 6M6 6l12 12" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                </svg>
-              </button>
-            </div>
+  // ── Toolbar ──
+  const renderToolbar = (variant: 'regular' | 'fullscreen') => (
+    <div className={`flex items-center justify-between gap-2 px-3 h-10 flex-shrink-0 ${
+      variant === 'fullscreen'
+        ? 'bg-[var(--bg-alt)] border-b border-[var(--border)]'
+        : 'bg-[var(--bg-alt)] border-b border-[var(--border)]'
+    }`}>
+      {/* Left */}
+      <div className="flex items-center gap-2 min-w-0">
+        <span className="text-xs font-bold text-[var(--text-base)] tracking-wide uppercase">Chat</span>
+        <span className="text-[10px] font-semibold text-[var(--text-muted)] tabular-nums">
+          {filteredMessages.length.toLocaleString()}
+        </span>
+      </div>
+
+      {/* Right */}
+      <div className="flex items-center gap-1.5">
+        {/* Search */}
+        <div className="relative">
+          <Search className="absolute left-2 top-1/2 -translate-y-1/2 w-3 h-3 text-[var(--text-muted)] pointer-events-none" />
+          <input
+            type="text"
+            placeholder="Filter…"
+            value={filter}
+            onChange={e => setFilter(e.target.value)}
+            className="h-7 pl-7 pr-7 w-36 bg-[var(--bg-input)] border border-[var(--border)] rounded-md text-xs text-[var(--text-base)] placeholder:text-[var(--text-muted)] focus:outline-none focus:border-[var(--accent)] transition-colors"
+          />
+          {filter && (
+            <button onClick={() => setFilter('')} className="absolute right-1.5 top-1/2 -translate-y-1/2 text-[var(--text-muted)] hover:text-[var(--text-base)]">
+              <X className="w-3 h-3" />
+            </button>
           )}
         </div>
+
+        {/* Color mode toggle */}
+        <button
+          onClick={() => setChatColorMode(chatColorMode === 'default' ? 'source' : 'default')}
+          className={`flex items-center gap-1 h-7 px-2 rounded-md text-[10px] font-semibold transition-colors ${
+            chatColorMode === 'source'
+              ? 'bg-[var(--accent-muted)] text-[var(--accent)]'
+              : 'text-[var(--text-muted)] hover:text-[var(--text-dim)] hover:bg-[var(--bg-elevated)]'
+          }`}
+          title={chatColorMode === 'default' ? 'Color by user' : 'Color by source'}
+        >
+          <Palette className="w-3 h-3" />
+        </button>
+
+        {/* Auto-scroll toggle */}
+        <button
+          onClick={() => {
+            setAutoScroll(!autoScroll);
+            if (!autoScroll && listRef.current) {
+              listRef.current.scrollToItem(filteredMessages.length - 1);
+            }
+          }}
+          className={`flex items-center gap-1 h-7 px-2 rounded-md text-[10px] font-semibold transition-colors ${
+            autoScroll
+              ? 'bg-[var(--accent-muted)] text-[var(--accent)]'
+              : 'text-[var(--text-muted)] hover:text-[var(--text-dim)] hover:bg-[var(--bg-elevated)]'
+          }`}
+        >
+          <ArrowDown className="w-3 h-3" />
+        </button>
+
+        {/* Fullscreen toggle */}
+        <button
+          onClick={() => setIsFullscreen(!isFullscreen)}
+          className="flex items-center h-7 px-2 rounded-md text-[var(--text-muted)] hover:text-[var(--text-dim)] hover:bg-[var(--bg-elevated)] transition-colors"
+        >
+          {isFullscreen ? <Minimize2 className="w-3 h-3" /> : <Maximize2 className="w-3 h-3" />}
+        </button>
+      </div>
+    </div>
+  );
+
+  // ── Empty state ──
+  const renderEmpty = () => (
+    <div className="flex flex-col items-center justify-center h-full gap-3 text-center p-8">
+      <MessageSquare className="w-12 h-12 text-[var(--text-muted)] opacity-40" />
+      <p className="text-sm font-medium text-[var(--text-dim)]">
+        {messages.length === 0 ? 'Waiting for chat messages...' : 'No messages match your filter'}
+      </p>
+      <p className="text-xs text-[var(--text-muted)]">
+        {messages.length === 0 ? 'Messages will appear here in real-time' : 'Try different search terms'}
+      </p>
+    </div>
+  );
+
+  // ── Chat body (shared between regular & fullscreen) ──
+  const renderChatBody = () => (
+    <div className="flex-1 min-h-0 relative" ref={chatContainerRef}>
+      {filteredMessages.length === 0 ? (
+        renderEmpty()
+      ) : (
+        <AutoSizer>
+          {({ height, width }) => (
+            <VirtualList
+              height={height}
+              width={width}
+              itemCount={filteredMessages.length}
+              itemSize={ITEM_SIZE}
+              ref={listRef}
+              onScroll={handleScroll}
+              overscanCount={15}
+              style={{ background: 'var(--bg-base)' }}
+            >
+              {renderRow}
+            </VirtualList>
+          )}
+        </AutoSizer>
       )}
-    </>
+
+      {!autoScroll && filteredMessages.length > 0 && (
+        <button
+          className="chat-jump-btn"
+          onClick={() => {
+            setAutoScroll(true);
+            if (listRef.current) {
+              listRef.current.scrollToItem(filteredMessages.length - 1);
+            }
+          }}
+        >
+          <ArrowDown className="w-3.5 h-3.5" />
+          More messages below
+        </button>
+      )}
+    </div>
   );
 
   return (
     <>
-      {/* Regular mode */}
-      <div className="container-section">
-        {!isFullscreen && renderChatContent()}
-      </div>
+      {/* Regular mode — fills parent container */}
+      {!isFullscreen && (
+        <div className="flex flex-col h-full">
+          {renderToolbar('regular')}
+          {renderSourceBar()}
+          {renderChatBody()}
+        </div>
+      )}
       
       {/* Fullscreen mode using portal */}
       {isFullscreen && portalRef.current && 
         createPortal(
-          <div style={{ 
-            width: '100%', 
-            height: '100%', 
-            padding: '0', 
-            margin: '0', 
-            overflow: 'hidden',
-            background: 'var(--background)',
-            color: 'var(--foreground)'
-          }}>
-            <div className="main-container" style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
-              <div style={{ 
-                display: 'flex', 
-                flexDirection: 'column', 
-                gap: '16px', 
-                marginBottom: '16px'
-              }}>
-                {/* Compact header */}
-                <div style={{
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                  alignItems: 'center',
-                  gap: '16px',
-                  paddingBottom: '16px',
-                  borderBottom: '1px solid var(--border)'
-                }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                    <h2 className="text-lg text-primary" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                      <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" className="text-primary">
-                        <path d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                      </svg>
-                      Live Chat
-                    </h2>
-                    
-                    <div className="status-indicator status-live">
-                      {filteredMessages.length} messages
-                    </div>
-                  </div>
-                  
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <div style={{ position: 'relative', minWidth: '200px', maxWidth: '300px' }}>
-                      <div style={{
-                        position: 'absolute',
-                        left: '12px',
-                        top: '50%',
-                        transform: 'translateY(-50%)',
-                        pointerEvents: 'none'
-                      }}>
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" className="text-muted">
-                          <path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                        </svg>
-                      </div>
-                      <input
-                        type="text"
-                        placeholder="Filter messages..."
-                        value={filter}
-                        onChange={(e) => setFilter(e.target.value)}
-                        className="input"
-                        style={{ paddingLeft: '40px' }}
-                      />
-                    </div>
-                    
-                    <select 
-                      value={chatColorMode} 
-                      onChange={(e) => setChatColorMode(e.target.value as 'default' | 'source')}
-                      className="input"
-                      style={{ width: 'auto', minWidth: '140px' }}
-                    >
-                      <option value="default">Color by User</option>
-                      <option value="source">Color by Source</option>
-                    </select>
-                    
-                    <button
-                      onClick={() => {
-                        setAutoScroll(!autoScroll);
-                        if (!autoScroll && listRef.current) {
-                          listRef.current.scrollToItem(filteredMessages.length - 1);
-                        }
-                      }}
-                      className={`btn ${autoScroll ? 'btn-primary' : 'btn-secondary'}`}
-                      style={{ display: 'flex', alignItems: 'center', gap: '6px' }}
-                    >
-                      <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-                        <path d="M19 14l-7 7m0 0l-7-7m7 7V3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                      </svg>
-                      {autoScroll ? 'Auto Scroll' : 'Manual'}
-                    </button>
-                    
-                    <button
-                      onClick={() => setIsFullscreen(false)}
-                      className="btn btn-secondary"
-                      style={{ display: 'flex', alignItems: 'center', gap: '6px' }}
-                      aria-label="Exit Full Screen"
-                    >
-                      <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-                        <path d="M6 18L18 6M6 6l12 12" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                      </svg>
-                      Exit
-                    </button>
-                  </div>
-                </div>
-                
-                {/* Horizontal scrollable source stats */}
-                <div style={{ overflowX: 'auto', paddingBottom: '4px' }}>
-                  <div style={{ display: 'flex', gap: '12px', minWidth: 'max-content' }}>
-                    {(() => {
-                      // Get unique source IDs from messages
-                      const sourceIds = [...new Set(messages.map(m => m.sourceVideo.id))];
-                      
-                      return sourceIds.map(sourceId => {
-                        const metadata = videoMetadata.find(m => m.videoId === sourceId);
-                        const messageCount = messageCountsBySource[sourceId] || 0;
-                        const color = getColor(sourceId);
-                        
-                        return (
-                          <div 
-                            key={sourceId}
-                            className="container-box"
-                            style={{ 
-                              padding: '8px',
-                              display: 'flex',
-                              alignItems: 'center',
-                              flexShrink: 0,
-                              borderLeft: `3px solid ${color}`
-                            }}
-                          >
-                            <img 
-                              src={metadata?.thumbnailUrl || getYouTubeThumbnail(sourceId)} 
-                              alt={formatTitle(metadata?.title) || 'Video thumbnail'}
-                              style={{ 
-                                width: '32px', 
-                                height: '24px', 
-                                objectFit: 'cover',
-                                border: '1px solid var(--border)',
-                                marginRight: '8px',
-                                flexShrink: 0
-                              }}
-                              loading="lazy"
-                            />
-                            
-                            <div style={{ minWidth: 0, maxWidth: '150px' }}>
-                              <div className="text-xs text-primary" style={{ 
-                                fontWeight: '600',
-                                overflow: 'hidden',
-                                textOverflow: 'ellipsis',
-                                whiteSpace: 'nowrap',
-                                marginBottom: '2px'
-                              }} title={formatTitle(metadata?.title)}>
-                                {formatTitle(metadata?.title)}
-                              </div>
-                              
-                              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }} className="text-xs text-muted">
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '2px' }}>
-                                  <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
-                                    <path d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                                    <path d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                                  </svg>
-                                  {formatCompactNumber(metadata?.viewCount)}
-                                </div>
-                                
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '2px' }}>
-                                  <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
-                                    <path d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                                  </svg>
-                                  {messageCount}
-                                </div>
-                              </div>
-                            </div>
-                          </div>
-                        );
-                      });
-                    })()}
-                  </div>
-                </div>
-              </div>
-              
-              <div style={{ 
-                flexGrow: 1, 
-                position: 'relative', 
-                overflow: 'hidden',
-                border: '1px solid var(--border)',
-                background: 'var(--card-bg)'
-              }}>
-                {filteredMessages.length === 0 ? (
-                  <div className="container-section">
-                    {renderEmptyMessage()}
-                  </div>
-                ) : (
-                  <AutoSizer>
-                    {({ height, width }) => (
-                      <VirtualList
-                        height={height}
-                        width={width}
-                        itemCount={filteredMessages.length}
-                        itemSize={90}
-                        ref={listRef}
-                        onScroll={handleScroll}
-                        overscanCount={8}
-                        style={{ background: 'var(--card-bg)' }}
-                      >
-                        {renderRow}
-                      </VirtualList>
-                    )}
-                  </AutoSizer>
-                )}
-
-                {!autoScroll && (
-                  <div style={{
-                    position: 'absolute',
-                    bottom: '16px',
-                    left: '50%',
-                    transform: 'translateX(-50%)'
-                  }}>
-                    <button
-                      onClick={() => {
-                        setAutoScroll(true);
-                        if (listRef.current) {
-                          listRef.current.scrollToItem(filteredMessages.length - 1);
-                        }
-                      }}
-                      className="btn btn-primary"
-                      style={{ 
-                        display: 'flex', 
-                        alignItems: 'center', 
-                        gap: '8px',
-                        boxShadow: '0 4px 6px rgba(0, 0, 0, 0.2)'
-                      }}
-                    >
-                      <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-                        <path d="M19 14l-7 7m0 0l-7-7m7 7V3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                      </svg>
-                      Scroll to Latest
-                    </button>
-                  </div>
-                )}
-              </div>
+          <div className="chat-fullscreen-root">
+            {renderToolbar('fullscreen')}
+            {renderSourceBar()}
+            <div className="chat-fullscreen-body">
+              {renderChatBody()}
             </div>
-          </div>, 
+          </div>,
           portalRef.current
         )
       }
     </>
   );
 }
-
-// Define props for CustomTooltip
-interface CustomTooltipProps {
-  active?: boolean;
-  payload?: Array<{
-    value: number;
-    name: string;
-    dataKey: string;
-    payload?: Record<string, unknown>;
-  }>;
-  label?: string;
-}
-
-// CustomTooltip component for charts
-const CustomTooltip = ({ active, payload, label }: CustomTooltipProps) => {
-  // ... rest of the component
-}; 

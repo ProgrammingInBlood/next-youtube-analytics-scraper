@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback, useRef } from 'react';
+import { Radio, MessageSquare, BarChart3, AlertCircle, Zap, Loader2 } from 'lucide-react';
 import UrlForm from './UrlForm';
 import ChatDisplay from './ChatDisplay';
 import MetadataDisplay from './MetadataDisplay';
@@ -45,6 +46,12 @@ interface ChatMessage {
   };
 }
 
+const TAB_ITEMS = [
+  { key: 'chat', label: 'Live Chat', icon: MessageSquare },
+  { key: 'dashboard', label: 'Streams', icon: Radio },
+  { key: 'analytics', label: 'Analytics', icon: BarChart3 },
+] as const;
+
 export default function YouTubeAggregator() {
   // State management
   const [urls, setUrls] = useState<string[]>([]);
@@ -56,7 +63,8 @@ export default function YouTubeAggregator() {
     chat: null,
     metadata: null
   });
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'chat' | 'analytics'>('dashboard');
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'chat' | 'analytics'>('chat');
+  const [showUrlPanel, setShowUrlPanel] = useState(true);
   
   // Track non-live URLs to avoid polling them
   const [nonLiveUrls, setNonLiveUrls] = useState<string[]>([]);
@@ -361,6 +369,8 @@ export default function YouTubeAggregator() {
     // Start fetching data
     startPolling(submittedUrls);
     setLoading(false);
+    setShowUrlPanel(false);
+    setActiveTab('chat');
   }, [startPolling, urls]);
 
   // Clean up when component unmounts
@@ -371,114 +381,126 @@ export default function YouTubeAggregator() {
     };
   }, [pollingIntervals]);
 
+  const liveCount = metadata.filter(m => m.isLive).length;
+
   return (
-    <div style={{ minHeight: '100vh', background: 'var(--background)', color: 'var(--foreground)' }}>
-      <div className="main-container">
-        {/* Page Header */}
-        <div className="container-box mb-6">
-          <div className="container-section">
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>
-              <div>
-                <h1 className="text-lg text-primary" style={{ marginBottom: '4px' }}>Live Stream Analytics Dashboard</h1>
-                <p className="text-muted">Monitor and analyze chat from multiple YouTube live streams in real-time</p>
-              </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                <div className="status-indicator status-live">
-                  <div style={{ width: '6px', height: '6px', borderRadius: '50%', background: 'currentColor' }}></div>
-                  System Online
-                </div>
-                <div className="text-muted text-sm">
-                  {chatMessages.length} messages • {metadata.filter(m => m.isLive).length} live streams
-                </div>
-              </div>
+    <div className="flex flex-col h-screen bg-[var(--bg-base)] text-[var(--foreground)]">
+      {/* ── Top Navigation Bar ── */}
+      <header className="flex items-center justify-between h-12 px-4 bg-[var(--bg-alt)] border-b border-[var(--border)] flex-shrink-0">
+        <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2">
+            <Zap className="w-5 h-5 text-[var(--accent)]" />
+            <span className="text-base font-extrabold tracking-tight text-[var(--text-base)]">ChatFusion</span>
+          </div>
+          <span className="hidden sm:inline-block w-px h-5 bg-[var(--border)]" />
+          <span className="hidden sm:inline text-xs text-[var(--text-muted)] font-medium">Multi-Stream Chat</span>
+        </div>
+
+        <div className="flex items-center gap-1">
+          {/* Tab navigation */}
+          {TAB_ITEMS.map(({ key, label, icon: Icon }) => (
+            <button
+              key={key}
+              onClick={() => setActiveTab(key as 'dashboard' | 'chat' | 'analytics')}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-semibold transition-colors ${
+                activeTab === key
+                  ? 'bg-[var(--accent-muted)] text-[var(--accent)]'
+                  : 'text-[var(--text-muted)] hover:text-[var(--text-dim)] hover:bg-[var(--bg-elevated)]'
+              }`}
+            >
+              <Icon className="w-3.5 h-3.5" />
+              <span className="hidden md:inline">{label}</span>
+            </button>
+          ))}
+
+          <span className="w-px h-5 bg-[var(--border)] mx-1" />
+
+          {/* Toggle URL panel */}
+          <button
+            onClick={() => setShowUrlPanel(!showUrlPanel)}
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-semibold transition-colors ${
+              showUrlPanel 
+                ? 'bg-[var(--accent-muted)] text-[var(--accent)]'
+                : 'text-[var(--text-muted)] hover:text-[var(--text-dim)] hover:bg-[var(--bg-elevated)]'
+            }`}
+          >
+            <Radio className="w-3.5 h-3.5" />
+            <span className="hidden md:inline">Setup</span>
+          </button>
+
+          {/* Live status */}
+          {liveCount > 0 && (
+            <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-[var(--red-muted)] text-[var(--red)] text-[11px] font-bold ml-1">
+              <span className="w-1.5 h-1.5 rounded-full bg-[var(--red)] animate-live" />
+              {liveCount} LIVE
             </div>
-            
+          )}
+
+          {/* Message count */}
+          {chatMessages.length > 0 && (
+            <span className="text-[11px] text-[var(--text-muted)] font-medium tabular-nums ml-1">
+              {chatMessages.length.toLocaleString()} msgs
+            </span>
+          )}
+        </div>
+      </header>
+
+      {/* ── URL Setup Panel (collapsible) ── */}
+      {showUrlPanel && (
+        <div className="border-b border-[var(--border)] bg-[var(--bg-alt)] px-4 py-3 animate-fade-in">
+          <div className="max-w-3xl mx-auto">
             <UrlForm onSubmit={handleSubmit} loading={loading} />
           </div>
         </div>
+      )}
 
-        {/* Navigation Tabs */}
-        <div className="tab-nav mb-6">
-          <div className="tab-list">
-            <button
-              onClick={() => setActiveTab("dashboard")}
-              className={`tab-button ${activeTab === "dashboard" ? "active" : ""}`}
-            >
-              Overview
-            </button>
-            <button
-              onClick={() => setActiveTab("chat")}
-              className={`tab-button ${activeTab === "chat" ? "active" : ""}`}
-            >
-              Live Chat
-            </button>
-            <button
-              onClick={() => setActiveTab("analytics")}
-              className={`tab-button ${activeTab === "analytics" ? "active" : ""}`}
-            >
-              Analytics
-            </button>
-          </div>
+      {/* ── Error Banner ── */}
+      {error && (
+        <div className="flex items-center gap-2 px-4 py-2 bg-[var(--red-muted)] border-b border-[var(--red)]/20 text-[var(--red)] text-xs font-medium animate-fade-in">
+          <AlertCircle className="w-3.5 h-3.5 flex-shrink-0" />
+          <span className="truncate">{error}</span>
+          <button onClick={() => setError(null)} className="ml-auto text-[var(--red)] hover:text-white text-xs font-bold px-1">✕</button>
         </div>
+      )}
 
-        {/* Content Area */}
-        <div style={{ minHeight: '400px' }}>
-          {activeTab === "dashboard" && (
-            <div className="grid grid-cols-3" style={{ gap: '24px' }}>
-              <div style={{ gridColumn: 'span 2' }}>
+      {/* ── Main Content ── */}
+      <main className="flex-1 min-h-0 overflow-hidden">
+        {activeTab === 'chat' && (
+          <ChatDisplay messages={chatMessages} videoMetadata={metadata} />
+        )}
+
+        {activeTab === 'dashboard' && (
+          <div className="h-full overflow-y-auto p-4">
+            <div className="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-4">
+              <div className="lg:col-span-2">
                 <MetadataDisplay metadata={metadata} />
               </div>
               <div>
                 <EngagementStats messages={chatMessages} />
               </div>
             </div>
-          )}
+          </div>
+        )}
 
-          {activeTab === "chat" && (
-            <div className="container-box">
-              <ChatDisplay messages={chatMessages} videoMetadata={metadata} />
-            </div>
-          )}
-
-          {activeTab === "analytics" && (
-            <div className="container-box">
+        {activeTab === 'analytics' && (
+          <div className="h-full overflow-y-auto p-4">
+            <div className="max-w-6xl mx-auto">
               <ChatAnalytics messages={chatMessages} metadata={metadata} />
             </div>
-          )}
+          </div>
+        )}
+      </main>
+
+      {/* ── Loading Overlay ── */}
+      {loading && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-[var(--bg-base)]/80 backdrop-blur-sm">
+          <div className="text-center">
+            <Loader2 className="w-8 h-8 text-[var(--accent)] animate-spin mx-auto mb-3" />
+            <p className="text-sm font-semibold text-[var(--text-base)]">Connecting to streams...</p>
+            <p className="text-xs text-[var(--text-muted)] mt-1">Fetching live chat data</p>
+          </div>
         </div>
-
-        {/* Loading Overlay */}
-        {loading && (
-          <div style={{
-            position: 'fixed',
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            background: 'rgba(10, 10, 11, 0.8)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            zIndex: 50
-          }}>
-            <div style={{ textAlign: 'center' }}>
-              <div className="loading-spinner" style={{ margin: '0 auto 16px', width: '32px', height: '32px' }}></div>
-              <p className="text-lg text-primary">Loading streams...</p>
-              <p className="text-muted text-sm">Connecting to YouTube Live API</p>
-            </div>
-          </div>
-        )}
-
-        {/* Error Messages */}
-        {error && (
-          <div className="error-box" style={{ marginTop: '24px' }}>
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-              <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
-            </svg>
-            <span>{error}</span>
-          </div>
-        )}
-      </div>
+      )}
     </div>
   );
 } 
